@@ -10,6 +10,16 @@ comparison to NLU (Natural Language Understanding).
 * Maybe GANs can be used to train source code generation. 
 * Maybe Use ProGAN methods applied to source code
 
+## Technologies
+
+I will definetly make use of
+ 
+* Tensorflow and
+* Keras
+
+in this project.
+
+
 ## Some Pointers and reminders
 
 * Use natural language embeddings like __glove.6b.300d.txt__ -> better understand variable names / method names
