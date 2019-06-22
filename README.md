@@ -19,6 +19,13 @@ I will definetly make use of
 
 in this project.
 
+## Datasets to use
+* https://nlp.stanford.edu/projects/glove/
+  * http://nlp.stanford.edu/data/glove.840B.300d.zip
+  * http://nlp.stanford.edu/data/glove.42B.300d.zip
+  * http://nlp.stanford.edu/data/glove.6B.zip (Proof of concept)
+* high profile and high quality java source code
+
 
 ## Some Pointers and reminders
 
@@ -32,3 +39,6 @@ in this project.
   * https://towardsdatascience.com/progan-how-nvidia-generated-images-of-unprecedented-quality-51c98ec2cbd2
   * https://research.nvidia.com/sites/default/files/pubs/2017-10_Progressive-Growing-of/karras2018iclr-paper.pdf
   * https://github.com/perplexingpegasus/ProGAN
+  * https://www.tngtech.com/fileadmin/Public/Images/BigTechday/BTD11/Folien/MachineLearningonSourceCode.pdf
+  * https://arxiv.org/pdf/1809.07945.pdf
+  * https://arxiv.org/pdf/1711.00740.pdf
