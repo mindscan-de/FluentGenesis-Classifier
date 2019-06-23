@@ -33,11 +33,10 @@ from keras.models import Sequential
 from keras import layers
 import traceback
 
+### TODO: load / create_embedding_matrix
 
 ### TODO: https://realpython.com/python-keras-text-classification/
 def createModel(vocab_size, embedding_dim, embedding_matrix):
-    # create the Model
-    
     model = Sequential()
     # TODO: do the - embedding layer - non trainable pretrainied with glove.
     #
@@ -53,9 +52,11 @@ def createModel(vocab_size, embedding_dim, embedding_matrix):
     # fully connected layers
     model.add(layers.Dense(512, activation='relu'))
     model.add(layers.Dense(512, activation='relu'))
-    # add output Layer
+    
+    # add output Layer - 100 different output classes of intents 
     model.add(layers.Dense(100, activation='sigmoid'))
     
+    # compile and prin summary of the model
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     model.summary()
     return model
