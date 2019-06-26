@@ -24,14 +24,13 @@ SOFTWARE.
 @author: Maxim Gansert
 '''
 
-import sys
 import argparse
-
 import numpy as np
+import sys
+import traceback
 
 from keras.models import Sequential
 from keras import layers
-import traceback
 
 ### TODO: load / create_embedding_matrix
 
@@ -48,6 +47,9 @@ def createModel(vocab_size, embedding_dim, embedding_matrix):
     # instead of 250 x (300x4) vextor
     model.add( layers.Conv2D(250, kernel_size=(embedding_dim,4), strides=(1,1), padding='valid', activation='relu', batch_input_shape=(None, embedding_dim, 64, 1)))
     model.add( layers.GlobalMaxPooling2D() )   # should return 250 values... one for each kernel.
+    
+    # more robust predictions with dropout
+    model.add( layers.Dropout(0.5) )
     
     # fully connected layers
     model.add(layers.Dense(512, activation='relu'))
