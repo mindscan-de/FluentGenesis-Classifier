@@ -37,15 +37,16 @@ from keras import layers
 ### TODO: https://realpython.com/python-keras-text-classification/
 def createModel(vocab_size, embedding_dim, embedding_matrix):
     model = Sequential()
-    # TODO: do the - embedding layer - non trainable pretrainied with glove.
-    #
-    # model.add( layers.Embedding(input_dim=vocab_size, output_dim=embedding_dim, weights=[embedding_matrix], input_length=64, trainable=False) )
-    # 
+    my_input_length= 64
+    
+    model.add( layers.Embedding(input_dim=vocab_size, output_dim=embedding_dim, weights=[embedding_matrix], input_length=my_input_length, trainable=False) )
+    model.add( layers.Reshape(target_shape=(my_input_length,embedding_dim,1)))
+    
     # TODO:
     # start with a simple and single convolutional layer ... 
-    # later on we will do here more different kernelsizes 150*(300,1), 50*(300,2), 50*(300,3), 50*(300,4) and stack them to a 250 element vector
-    # instead of 250 x (300x4) vextor
-    model.add( layers.Conv2D(250, kernel_size=(embedding_dim,4), strides=(1,1), padding='valid', activation='relu', batch_input_shape=(None, embedding_dim, 64, 1)))
+    # later on we will do here more different kernelsizes like 150*(1,300), 50*(2,300), 50*(3,300), 50*(4,300) and stack them to a 250 element vector
+    # instead of 250 x (4,300) vextor
+    model.add( layers.Conv2D(250, kernel_size=(4,embedding_dim), strides=(1,1), padding='valid', activation='relu' )) # , batch_input_shape=(None, embedding_dim, 64, 1)
     model.add( layers.GlobalMaxPooling2D() )   # should return 250 values... one for each kernel.
     
     # more robust predictions with dropout
