@@ -29,32 +29,64 @@ import numpy as np
 import sys
 import traceback
 
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras import layers
+from keras.layers.pooling import MaxPooling2D
 
 ### TODO: load / create_embedding_matrix
 
+embedding_dim = 300
+
+number_of_kernels = {}
+number_of_kernels[0] = 150
+number_of_kernels[1] = 50
+number_of_kernels[2] = 50
+number_of_kernels[3] = 50
+
+kernel_sizes =  { }
+kernel_sizes[0] = [1, embedding_dim]
+kernel_sizes[1] = [2, embedding_dim]
+kernel_sizes[2] = [3, embedding_dim]
+kernel_sizes[3] = [4, embedding_dim]
+
+
+def create_parallel_CNNs( inputLayer ):
+    convs = []
+    for k_no in range(len(kernel_sizes)):
+        conv = layers.Conv2D(number_of_kernels[k_no], )(inputLayer)
+        pool = MaxPooling2D()(conv)
+        convs.append(pool)
+    outputLayer = layers.Concatenate()(convs)
+    conv_model = Model(input=inputLayer, output=outputLayer)
+    return conv_model
+    
+    
 ### TODO: https://realpython.com/python-keras-text-classification/
-def createModel(vocab_size, embedding_dim, embedding_matrix):
+def createModel(vocab_size, embedding_dimension, embedding_matrix):
     model = Sequential()
     my_input_length= 64
     
-    model.add( layers.Embedding(input_dim=vocab_size, output_dim=embedding_dim, weights=[embedding_matrix], input_length=my_input_length, trainable=False) )
-    model.add( layers.Reshape(target_shape=(my_input_length,embedding_dim,1)))
+    model.add( layers.Embedding(input_dim=vocab_size, output_dim=embedding_dimension, weights=[embedding_matrix], input_length=my_input_length, trainable=False) )
+    reshapedInput = layers.Reshape(target_shape=(my_input_length, embedding_dimension, 1))
+    model.add( reshapedInput)
+    
+    # model.add( create_parallel_CNNs(reshapedInput) )
     
     # TODO:
     # start with a simple and single convolutional layer ... 
     # later on we will do here more different kernelsizes like 150*(1,300), 50*(2,300), 50*(3,300), 50*(4,300) and stack them to a 250 element vector
     # instead of 250 x (4,300) vextor
-    model.add( layers.Conv2D(250, kernel_size=(4,embedding_dim), strides=(1,1), padding='valid', activation='relu' )) # , batch_input_shape=(None, embedding_dim, 64, 1)
+    model.add( layers.Conv2D(250, kernel_size=(4,embedding_dimension), strides=(1,1), padding='valid', activation='relu' )) # , batch_input_shape=(None, embedding_dimension, 64, 1)
     model.add( layers.GlobalMaxPooling2D() )   # should return 250 values... one for each kernel.
     
     # more robust predictions with dropout
-    model.add( layers.Dropout(0.5) )
+    model.add( layers.Dropout(0.25) )
     
     # fully connected layers
     model.add(layers.Dense(512, activation='relu'))
     model.add(layers.Dense(512, activation='relu'))
+    
+    model.add( layers.Dropout(0.5) )
     
     # add output Layer - 100 different output classes of intents 
     model.add(layers.Dense(100, activation='sigmoid'))
@@ -68,7 +100,7 @@ def createModel(vocab_size, embedding_dim, embedding_matrix):
 
 def runSourceCodeClassifierTraining():
     vocab_size=1000
-    embedding_dim = 300
+
     embedding_matrix=np.zeros((vocab_size, embedding_dim), dtype=np.float32)
     # embedding_matrix = create_embedding_matrix('D:\Projects\SinglePageApplication\Angular\FluentGenesis-Classifier\data\glove\glove.6B.50d.txt')
     _ = createModel(vocab_size, embedding_dim, embedding_matrix)
