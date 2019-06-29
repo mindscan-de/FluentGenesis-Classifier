@@ -32,6 +32,9 @@ import traceback
 from keras.models import Sequential, Model
 from keras import layers
 from keras.layers.pooling import MaxPooling2D
+from keras.engine.topology import InputLayer
+from grpc.framework.foundation.logging_pool import pool
+from keras.utils import plot_model
 
 ### TODO: load / create_embedding_matrix
 
@@ -44,23 +47,31 @@ number_of_kernels[2] = 50
 number_of_kernels[3] = 50
 
 kernel_sizes =  { }
-kernel_sizes[0] = [1, embedding_dim]
-kernel_sizes[1] = [2, embedding_dim]
-kernel_sizes[2] = [3, embedding_dim]
-kernel_sizes[3] = [4, embedding_dim]
+kernel_sizes[0] = (1, embedding_dim)
+kernel_sizes[1] = (2, embedding_dim)
+kernel_sizes[2] = (3, embedding_dim)
+kernel_sizes[3] = (4, embedding_dim)
 
 
-def create_parallel_CNNs( inputLayer ):
-    convs = []
-    for k_no in range(len(kernel_sizes)):
-        conv = layers.Conv2D(number_of_kernels[k_no], )(inputLayer)
-        pool = MaxPooling2D()(conv)
-        convs.append(pool)
-    outputLayer = layers.Concatenate()(convs)
-    conv_model = Model(input=inputLayer, output=outputLayer)
-    return conv_model
-    
-    
+# def create_parallel_CNNs( inputLayer ):
+#     convs = []
+#     for k_no in range(len(kernel_sizes)):
+#         conv = layers.Conv2D(number_of_kernels[k_no], kernel_size=kernel_sizes[k_no], strides=(1,1), padding='valid', activation='relu' )(inputLayer)
+#         pool = MaxPooling2D()(conv)
+#         convs.append(pool)
+#     outputLayer = layers.Concatenate()(convs)
+#     conv_model = Model(input=inputLayer, output=outputLayer)
+#     return conv_model
+
+
+#def create_inline_CNNs( inputLayer ):
+#     input = layers.Input(shape=(64,300,1))
+#     local_conv = layers.Conv2D(250, kernel_size=(4,embedding_dim), strides=(1,1), padding='valid', activation='relu' )(input) # , batch_input_shape=(None, embedding_dimension, 64, 1)
+#     pool = layers.GlobalMaxPooling2D()(local_conv)    # should return 250 values... one for each kernel.
+#     cnn_model = Model(InputLayer, pool)
+#     return cnn_model
+
+
 ### TODO: https://realpython.com/python-keras-text-classification/
 def createModel(vocab_size, embedding_dimension, embedding_matrix):
     model = Sequential()
@@ -70,7 +81,8 @@ def createModel(vocab_size, embedding_dimension, embedding_matrix):
     reshapedInput = layers.Reshape(target_shape=(my_input_length, embedding_dimension, 1))
     model.add( reshapedInput)
     
-    # model.add( create_parallel_CNNs(reshapedInput) )
+    # does not working properly
+    # model.add( create_inline_CNNs(reshapedInput) )
     
     # TODO:
     # start with a simple and single convolutional layer ... 
@@ -94,6 +106,8 @@ def createModel(vocab_size, embedding_dimension, embedding_matrix):
     # compile and prin summary of the model
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     model.summary()
+    
+    plot_model(model, to_file="current_model.png", show_shapes=True)
     return model
     
     
