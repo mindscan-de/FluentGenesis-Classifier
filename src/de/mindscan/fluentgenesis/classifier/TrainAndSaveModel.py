@@ -31,45 +31,32 @@ import traceback
 
 from keras.models import Sequential, Model
 from keras import layers
-from keras.layers.pooling import MaxPooling2D
-from keras.engine.topology import InputLayer
-from grpc.framework.foundation.logging_pool import pool
 from keras.utils import plot_model
 
 ### TODO: load / create_embedding_matrix
 
 embedding_dim = 300
 
-number_of_kernels = {}
-number_of_kernels[0] = 150
-number_of_kernels[1] = 50
-number_of_kernels[2] = 50
-number_of_kernels[3] = 50
 
-kernel_sizes =  { }
-kernel_sizes[0] = (1, embedding_dim)
-kernel_sizes[1] = (2, embedding_dim)
-kernel_sizes[2] = (3, embedding_dim)
-kernel_sizes[3] = (4, embedding_dim)
-
-
-# def create_parallel_CNNs( inputLayer ):
-#     convs = []
-#     for k_no in range(len(kernel_sizes)):
-#         conv = layers.Conv2D(number_of_kernels[k_no], kernel_size=kernel_sizes[k_no], strides=(1,1), padding='valid', activation='relu' )(inputLayer)
-#         pool = MaxPooling2D()(conv)
-#         convs.append(pool)
-#     outputLayer = layers.Concatenate()(convs)
-#     conv_model = Model(input=inputLayer, output=outputLayer)
-#     return conv_model
-
-
-#def create_inline_CNNs( inputLayer ):
-#     input = layers.Input(shape=(64,300,1))
-#     local_conv = layers.Conv2D(250, kernel_size=(4,embedding_dim), strides=(1,1), padding='valid', activation='relu' )(input) # , batch_input_shape=(None, embedding_dimension, 64, 1)
-#     pool = layers.GlobalMaxPooling2D()(local_conv)    # should return 250 values... one for each kernel.
-#     cnn_model = Model(InputLayer, pool)
-#     return cnn_model
+def create_inline_CNNs( embedding_dimension ):
+    cnn_input_layer = layers.Input(shape=(64,embedding_dimension,1))
+    
+    tower_1_c = layers.Conv2D(256, kernel_size=(1,embedding_dimension), strides=(1,1), padding='valid', activation='relu' )(cnn_input_layer)
+    tower_1_p = layers.GlobalMaxPooling2D()(tower_1_c)
+    
+    tower_2_c = layers.Conv2D(128, kernel_size=(2,embedding_dimension), strides=(1,1), padding='valid', activation='relu' )(cnn_input_layer)
+    tower_2_p = layers.GlobalMaxPooling2D()(tower_2_c)
+    
+    tower_3_c = layers.Conv2D(64, kernel_size=(3,embedding_dimension), strides=(1,1), padding='valid', activation='relu' )(cnn_input_layer)
+    tower_3_p = layers.GlobalMaxPooling2D()(tower_3_c)
+    
+    tower_4_c = layers.Conv2D(32, kernel_size=(4,embedding_dimension), strides=(1,1), padding='valid', activation='relu' )(cnn_input_layer)
+    tower_4_p = layers.GlobalMaxPooling2D()(tower_4_c)
+        
+    merged = layers.concatenate([tower_1_p, tower_2_p, tower_3_p, tower_4_p])
+    cnn_model = Model(cnn_input_layer, merged)
+    cnn_model.summary()
+    return cnn_model
 
 
 ### TODO: https://realpython.com/python-keras-text-classification/
@@ -78,18 +65,10 @@ def createModel(vocab_size, embedding_dimension, embedding_matrix):
     my_input_length= 64
     
     model.add( layers.Embedding(input_dim=vocab_size, output_dim=embedding_dimension, weights=[embedding_matrix], input_length=my_input_length, trainable=False) )
-    reshapedInput = layers.Reshape(target_shape=(my_input_length, embedding_dimension, 1))
-    model.add( reshapedInput)
+    model.add( layers.Reshape(target_shape=(my_input_length, embedding_dimension, 1)))
     
-    # does not working properly
-    # model.add( create_inline_CNNs(reshapedInput) )
-    
-    # TODO:
-    # start with a simple and single convolutional layer ... 
-    # later on we will do here more different kernelsizes like 150*(1,300), 50*(2,300), 50*(3,300), 50*(4,300) and stack them to a 250 element vector
-    # instead of 250 x (4,300) vextor
-    model.add( layers.Conv2D(250, kernel_size=(4,embedding_dimension), strides=(1,1), padding='valid', activation='relu' )) # , batch_input_shape=(None, embedding_dimension, 64, 1)
-    model.add( layers.GlobalMaxPooling2D() )   # should return 250 values... one for each kernel.
+    embedded_text_cnn_model = create_inline_CNNs(embedding_dimension)
+    model.add( embedded_text_cnn_model )
     
     # more robust predictions with dropout
     model.add( layers.Dropout(0.25) )
@@ -108,6 +87,7 @@ def createModel(vocab_size, embedding_dimension, embedding_matrix):
     model.summary()
     
     plot_model(model, to_file="current_model.png", show_shapes=True)
+    plot_model(embedded_text_cnn_model, to_file="current_cnn_model.png", show_shapes=True)
     return model
     
     
