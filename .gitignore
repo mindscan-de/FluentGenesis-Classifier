@@ -24,6 +24,9 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# ipython notebook
+/ipynb/.ipynb_checkpoints
+
 # misc
 /.sass-cache
 /connect.lock
@@ -38,3 +41,5 @@ testem.log
 .DS_Store
 Thumbs.db
 /.pydevproject
+
+
