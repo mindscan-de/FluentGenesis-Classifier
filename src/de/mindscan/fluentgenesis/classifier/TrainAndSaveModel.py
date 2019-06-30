@@ -86,8 +86,8 @@ def createModel(vocab_size, embedding_dimension, embedding_matrix):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     model.summary()
     
-    plot_model(model, to_file="current_model.png", show_shapes=True)
-    plot_model(embedded_text_cnn_model, to_file="current_cnn_model.png", show_shapes=True)
+    plot_model(model, to_file="debug/current_model.png", show_shapes=True)
+    plot_model(embedded_text_cnn_model, to_file="debug/current_cnn_model.png", show_shapes=True)
     return model
     
     
