@@ -5,8 +5,6 @@ Created on 04.08.2019
 '''
 from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
-from tensorflow.python.training.device_util import current
-from _operator import indexOf
 
 def get_lexeme_pairs(word):
     lexeme_pairs = []
@@ -123,21 +121,38 @@ def rebuild_token_map(token_map):
     return result
 
 
+def calculate_replacement_key_for(token, first_mptl, next_mptl, joined):
+    return token
+
+
 def replace_most_probable_lexemes(mp_token_pair, current_token_map):
     joined = "".join(mp_token_pair)
     removal_list = []
-    additions_list = []
+    additions_list = {}
     
-    (first_mpl, second_mpl) = mp_token_pair
+    first_mptl, next_mptl = mp_token_pair
     
-    # update all lexemes in 
-    for token, value in current_token_map.items():
+    # update all lexemes/tokens in current token map. 
+    for token, count in current_token_map.items():
         # is the tokenpair  part of the current token?
         # if no just continue with next element
-        # replace each occurence of the mp_token_pair with the joined value
+        if first_mptl not in token:
+            continue
+        if next_mptl not in token:
+            continue
+        
+        # more expensive implementation of substitution
+        # replace each occurence of the mp_token_pair with the joined key
+        new_key = calculate_replacement_key_for(token, first_mptl, next_mptl, joined)
+        
+        # if still the same, we do nothing        
+        if new_key == token :
+            continue
+        
         # add to removal list
+        removal_list.append(token)
         # add new element (joined) to add list
-        pass
+        additions_list[new_key] = count
         
     for remove_key in removal_list:
         current_token_map.pop(remove_key)
