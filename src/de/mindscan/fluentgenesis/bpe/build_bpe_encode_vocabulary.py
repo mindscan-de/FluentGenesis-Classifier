@@ -121,7 +121,12 @@ def rebuild_token_map(token_map):
     return result
 
 
+# TODO: implement this method, then we can compress the tokens..."
 def calculate_replacement_key_for(token, first_mptl, next_mptl, joined):
+    replacement_key=[]
+    # copy all items to replacement_key before first_mptl
+    # if next is next_mptl -> add joined to list
+    # then copy more, till ready
     return token
 
 
@@ -173,10 +178,17 @@ def build_dictionary(token_map):
     current_token_map = remove_completed_tokens(current_token_map)
     print (current_token_map)
     
+    ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
+    
     # find the most fequent / most probable pair
     current_token_frequencies = get_occurence_frequency2(current_token_map)
     sorted_current_lexeme_frequencies = sort_by_lexeme_occurence(current_token_frequencies)
     mp_token_pair = next(iter(sorted_current_lexeme_frequencies))
+    
+    ## ONLY WITH the for - loop
+    if current_token_frequencies[mp_token_pair] < 2:
+        # we are ready, we do not have any duplicates
+        pass 
     
     # emit first_token_pair
     emit_most_probable_lexeme(mp_token_pair, current_token_frequencies[mp_token_pair])
@@ -194,7 +206,7 @@ def build_dictionary(token_map):
     # flush all remaining single tokens / flush all remaining tokens not in the tokenlist.
     # flush all other statistics
    
-    # collect all other tokens, with length 1
+    # collect all remaining lexemes in the remaining map, with length 1 and write them into the tokenlist
 
 if __name__ == '__main__':
     tokens = runTokenizer("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\gen\\com\\onedatapoint\\R.java")
