@@ -5,6 +5,8 @@ Created on 04.08.2019
 '''
 from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
+from tensorflow.python.training.device_util import current
+from _operator import indexOf
 
 def get_lexeme_pairs(word):
     lexeme_pairs = []
@@ -123,6 +125,10 @@ def rebuild_token_map(token_map):
 
 def replace_most_probable_lexemes(mp_token_pair, current_token_map):
     joined = "".join(mp_token_pair)
+    removal_list = []
+    additions_list = []
+    
+    (first_mpl, second_mpl) = mp_token_pair
     
     # update all lexemes in 
     for token, value in current_token_map.items():
@@ -130,14 +136,15 @@ def replace_most_probable_lexemes(mp_token_pair, current_token_map):
         # if no just continue with next element
         # replace each occurence of the mp_token_pair with the joined value
         # add to removal list
-        # add new element to add list
+        # add new element (joined) to add list
         pass
         
-    # foreach element in removal list
-        # remove element from current_token_map
-    
-    # foreach element in all list
-        # add the replaced elements
+    for remove_key in removal_list:
+        current_token_map.pop(remove_key)
+
+    for addition_key, count in additions_list:
+        current_token_map[addition_key] = count
+        
     return current_token_map
 
 
