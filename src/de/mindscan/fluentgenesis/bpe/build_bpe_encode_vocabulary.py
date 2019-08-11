@@ -121,6 +121,26 @@ def rebuild_token_map(token_map):
     return result
 
 
+def replace_most_probable_lexemes(mp_token_pair, current_token_map):
+    joined = "".join(mp_token_pair)
+    
+    # update all lexemes in 
+    for token, value in current_token_map.items():
+        # is the tokenpair  part of the current token?
+        # if no just continue with next element
+        # replace each occurence of the mp_token_pair with the joined value
+        # add to removal list
+        # add new element to add list
+        pass
+        
+    # foreach element in removal list
+        # remove element from current_token_map
+    
+    # foreach element in all list
+        # add the replaced elements
+    return current_token_map
+
+
 def build_dictionary(token_map):
     # emit all one element tokens
     # create a copy of the  
@@ -140,7 +160,7 @@ def build_dictionary(token_map):
     emit_most_probable_lexeme(mp_token_pair, current_token_frequencies[mp_token_pair])
     
     # replace the first tokenpair on whole token_map
-    # current_token_map = replace_pair_in_tokens(mp_token_pair, current_token_map ) 
+    current_token_map = replace_most_probable_lexemes(mp_token_pair, current_token_map ) 
     
     # emit all complete tokens
     emit_complete_tokens(current_token_map)
