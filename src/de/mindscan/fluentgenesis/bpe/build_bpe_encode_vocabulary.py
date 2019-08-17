@@ -196,7 +196,22 @@ def replace_most_probable_lexemes(mp_token_pair, current_token_map):
 #
 def select_best_bpe_match(current_token_frequencies):
     sorted_current_lexeme_frequencies = sort_by_lexeme_occurence(current_token_frequencies)
-    return next(iter(sorted_current_lexeme_frequencies))
+    
+    current_iterator = iter(sorted_current_lexeme_frequencies)
+    
+    first_element = next(current_iterator)
+    first_occurences = current_token_frequencies[first_element]
+    
+    next_element = next(current_iterator)
+    next_occurences = current_token_frequencies[next_element]
+    
+    # first is max.
+    if(first_occurences > next_occurences):
+        return first_element
+    
+    # at least two elements have the same count, we should collect them and rank them.
+    
+    return first_element
 
 
 
@@ -206,12 +221,16 @@ def build_dictionary(token_map):
     current_token_map=rebuild_token_map(token_map)
     print (current_token_map)
     
+    print("the whole dictionary has now length : " + str(len(current_token_map)))
+    
     emit_complete_tokens(current_token_map)
     current_token_map = remove_completed_tokens(current_token_map)
     print (current_token_map)
     
+    print("the whole dictionary has now length : " + str(len(current_token_map)))
+    
     ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
-    for i in range(80):
+    for i in range(128):
         print("------------------------------------")
         print("Round: "+str(i))
         print("------------------------------------")
@@ -234,6 +253,8 @@ def build_dictionary(token_map):
         # emit all complete tokens
         emit_complete_tokens(current_token_map)
         current_token_map = remove_completed_tokens(current_token_map)
+        
+        print("the whole dictionary has now length : " + str(len(current_token_map)))
         # current_token_map = emit_tokens(current_token_map)
     
     # break if to many tokens emitted
@@ -247,6 +268,7 @@ def build_dictionary(token_map):
 
 if __name__ == '__main__':
     tokens = runTokenizer("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\gen\\com\\onedatapoint\\R.java")
+    tokens = runTokenizer("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\src\\com\\onedatapoint\\views\\AnalogClockTimePicker.java")
     print(tokens)
     
     _token_map = calculateTokenOccurence(tokens)
