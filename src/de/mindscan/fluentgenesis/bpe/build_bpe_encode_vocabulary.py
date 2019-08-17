@@ -238,6 +238,8 @@ def build_dictionary(token_map):
     
     # break if to many tokens emitted
     
+    # STILL @TODO: we must still work on the remaining "words", which do not have an encoding yet
+     
     # flush all remaining single tokens / flush all remaining tokens not in the tokenlist.
     # flush all other statistics
    
