@@ -185,6 +185,21 @@ def replace_most_probable_lexemes(mp_token_pair, current_token_map):
     return current_token_map
 
 
+#
+# Problem is, These elements need ranking... we to prefer smaller joins to bigger joins,
+# otherwise we are adding one letter next to the word and the dictionary gets polluted 
+# part by part by the most frequent word, instead of the buildingblocks (smaller lexemes) of the words
+# both lexemes should be of nearly equal length as well, so that we do not end up adding one letter at 
+# a time, but we still want that behavior, but maybe later on... when working on the dictionary.
+# 
+# we should rank if multiple candidates are found  
+#
+def select_best_bpe_match(current_token_frequencies):
+    sorted_current_lexeme_frequencies = sort_by_lexeme_occurence(current_token_frequencies)
+    return next(iter(sorted_current_lexeme_frequencies))
+
+
+
 def build_dictionary(token_map):
     # emit all one element tokens
     # create a copy of the  
@@ -203,22 +218,12 @@ def build_dictionary(token_map):
         
         # find the most fequent / most probable pair
         current_token_frequencies = get_occurence_frequency2(current_token_map)
-        sorted_current_lexeme_frequencies = sort_by_lexeme_occurence(current_token_frequencies)
-        #
-        # Problem is, These elements need ranking... we to prefer smaller joins to bigger joins,
-        # otherwise we are adding one letter next to the word and the dictionary gets polluted 
-        # part by part by the most frequent word, instead of the buildingblocks (smaller lexemes) of the words
-        # both lexemes should be of nearly equal length as well, so that we do not end up adding one letter at 
-        # a time, but we still want that behavior, but maybe later on... when working on the dictionary.
-        # 
-        # we should rank if multiple candidates are found  
-        #
-        mp_token_pair = next(iter(sorted_current_lexeme_frequencies))
+        mp_token_pair = select_best_bpe_match(current_token_frequencies)
         
         ## ONLY WITH the for - loop
         if current_token_frequencies[mp_token_pair] < 2:
             # we are ready, we do not have any duplicates
-            pass 
+            break
         
         # emit first_token_pair
         emit_most_probable_lexeme(mp_token_pair, current_token_frequencies[mp_token_pair])
