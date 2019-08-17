@@ -61,8 +61,6 @@ def sort_by_lexeme_occurence(token_map):
     return OrderedDict(sorted(token_map.items(), key=lambda item:item[1], reverse=True ))
 
 
-
-
 def get_occurence_frequency(sorted_token_list):
     ngram_frequency = {}
     for token, count in sorted_token_list.items():
@@ -121,13 +119,32 @@ def rebuild_token_map(token_map):
     return result
 
 
-# TODO: implement this method, then we can compress the tokens..."
 def calculate_replacement_key_for(token, first_mptl, next_mptl, joined):
     replacement_key=[]
-    # copy all items to replacement_key before first_mptl
-    # if next is next_mptl -> add joined to list
-    # then copy more, till ready
-    return token
+    
+    i=0
+    while i<len(token):
+        # copy all items to replacement_key before first_mptl
+        try:
+            j=token.index(first_mptl,i)
+            replacement_key.extend(token[i:j])
+            i=j
+        except:
+            replacement_key.extend(token[i:])
+            break;
+        
+        if token[i] == first_mptl and i<len(token)-1 and token[i+1] == next_mptl:
+            # if next is next_mptl -> add joined to list
+            replacement_key.append(joined)
+            i+=2
+        else:
+            # if next is not next_mptl -> only the first_mptl 
+            replacement_key.append(token[i])
+            i+=1
+        # then copy more, till ready
+    
+    print(str(token) +" -> " + str(replacement_key) + " because: " + str(joined))    
+    return tuple(replacement_key)
 
 
 def replace_most_probable_lexemes(mp_token_pair, current_token_map):
@@ -162,7 +179,7 @@ def replace_most_probable_lexemes(mp_token_pair, current_token_map):
     for remove_key in removal_list:
         current_token_map.pop(remove_key)
 
-    for addition_key, count in additions_list:
+    for addition_key, count in additions_list.items():
         current_token_map[addition_key] = count
         
     return current_token_map
@@ -179,27 +196,40 @@ def build_dictionary(token_map):
     print (current_token_map)
     
     ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
-    
-    # find the most fequent / most probable pair
-    current_token_frequencies = get_occurence_frequency2(current_token_map)
-    sorted_current_lexeme_frequencies = sort_by_lexeme_occurence(current_token_frequencies)
-    mp_token_pair = next(iter(sorted_current_lexeme_frequencies))
-    
-    ## ONLY WITH the for - loop
-    if current_token_frequencies[mp_token_pair] < 2:
-        # we are ready, we do not have any duplicates
-        pass 
-    
-    # emit first_token_pair
-    emit_most_probable_lexeme(mp_token_pair, current_token_frequencies[mp_token_pair])
-    
-    # replace the first tokenpair on whole token_map
-    current_token_map = replace_most_probable_lexemes(mp_token_pair, current_token_map ) 
-    
-    # emit all complete tokens
-    emit_complete_tokens(current_token_map)
-    current_token_map = remove_completed_tokens(current_token_map)
-    # current_token_map = emit_tokens(current_token_map)
+    for i in range(80):
+        print("------------------------------------")
+        print("Round: "+str(i))
+        print("------------------------------------")
+        
+        # find the most fequent / most probable pair
+        current_token_frequencies = get_occurence_frequency2(current_token_map)
+        sorted_current_lexeme_frequencies = sort_by_lexeme_occurence(current_token_frequencies)
+        #
+        # Problem is, These elements need ranking... we to prefer smaller joins to bigger joins,
+        # otherwise we are adding one letter next to the word and the dictionary gets polluted 
+        # part by part by the most frequent word, instead of the buildingblocks (smaller lexemes) of the words
+        # both lexemes should be of nearly equal length as well, so that we do not end up adding one letter at 
+        # a time, but we still want that behavior, but maybe later on... when working on the dictionary.
+        # 
+        # we should rank if multiple candidates are found  
+        #
+        mp_token_pair = next(iter(sorted_current_lexeme_frequencies))
+        
+        ## ONLY WITH the for - loop
+        if current_token_frequencies[mp_token_pair] < 2:
+            # we are ready, we do not have any duplicates
+            pass 
+        
+        # emit first_token_pair
+        emit_most_probable_lexeme(mp_token_pair, current_token_frequencies[mp_token_pair])
+        
+        # replace the first tokenpair on whole token_map
+        current_token_map = replace_most_probable_lexemes(mp_token_pair, current_token_map ) 
+        
+        # emit all complete tokens
+        emit_complete_tokens(current_token_map)
+        current_token_map = remove_completed_tokens(current_token_map)
+        # current_token_map = emit_tokens(current_token_map)
     
     # break if to many tokens emitted
     
