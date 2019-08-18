@@ -304,16 +304,23 @@ def build_dictionary(token_map):
     # collect all remaining lexemes in the remaining map, with length 1 and write them into the tokenlist
 
 if __name__ == '__main__':
+    
     initGlobalStatistics()
     
-    tokens = runTokenizerForFile("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\gen\\com\\onedatapoint\\R.java")
-    tokens = runTokenizerForFile("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\src\\com\\onedatapoint\\views\\AnalogClockTimePicker.java")
-    print(tokens)
-    print(type(tokens))
+    filenames = ["D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\gen\\com\\onedatapoint\\R.java",
+                 "D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\src\\com\\onedatapoint\\views\\AnalogClockTimePicker.java"
+                 ]
     
-    _token_map = calculateTokenOccurence(tokens)
-    print(type(_token_map))
+    for filename in filenames:
+        tokens = runTokenizerForFile(filename)
+        print(tokens)
+        _token_map = calculateTokenOccurence(tokens)
+        
+        updateGlobalStatistics(_token_map)
+
     
-    build_dictionary(_token_map)
+    _theGlobalTokenMap =getGlobalStatistics()
+    
+    build_dictionary(_theGlobalTokenMap)
     
     pass
