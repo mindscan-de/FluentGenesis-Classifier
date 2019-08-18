@@ -3,6 +3,8 @@ Created on 04.08.2019
 
 @author: Maxim Gansert, Mindscan
 '''
+import os
+
 from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
 
@@ -99,14 +101,18 @@ def get_occurence_frequency2(sorted_token_list):
 
 
 def emit_most_probable_lexeme(mp_token_pair, count_of_most_probable_token):
-    print("emit rank - most frequent element: " + str(mp_token_pair) + " occurences...("+ str(count_of_most_probable_token) +")")
-    print("emit also as token.")
+    try:
+        print("emit rank - most frequent element: " + str(mp_token_pair).encode("utf-8") + " occurences...("+ str(count_of_most_probable_token) +")")
+        print("emit also as token.")
+    except:
+        print("emit rank - most frequent element: " + str(mp_token_pair) + " occurences...("+ str(count_of_most_probable_token) +")")
+        print("emit also as token.")
 
 
 def emit_complete_tokens(current_token_map):
-    for key in current_token_map.keys():
-        if len(key) is 1:
-            print("emit token - because it is complete now: " + key[0])
+#     for key in current_token_map.keys():
+#         if len(key) is 1:
+#             print("emit token - because it is complete now: " + key[0].encode("utf-8"))
     pass
 
 
@@ -137,7 +143,7 @@ def calculate_replacement_key_for(token, first_mptl, next_mptl, joined):
     
     i=0
     while i<len(token):
-        # copy all items to replacement_key before first_mptl
+        # copy all items to replacement_key before first_mptl & after
         try:
             j=token.index(first_mptl,i)
             replacement_key.extend(token[i:j])
@@ -154,9 +160,15 @@ def calculate_replacement_key_for(token, first_mptl, next_mptl, joined):
             # if next is not next_mptl -> only the first_mptl 
             replacement_key.append(token[i])
             i+=1
+            
         # then copy more, till ready
+        #continue
     
-    print(str(token) +" -> " + str(replacement_key) + " because: " + str(joined))    
+    #try:
+    #    print(str(token).encode("utf-8") +" -> " + str(replacement_key).encode("utf-8") + " because: " + str(joined).encode("utf-8"))
+    #except:
+    #    print(str(token).encode("utf-8") +" -> " + str(replacement_key).encode("utf-8") + " because: " + str(joined).encode("utf-8"))
+        
     return tuple(replacement_key)
 
 
@@ -238,7 +250,10 @@ def select_best_bpe_match(current_token_frequencies):
     except:
         pass
     
-    print("We have more than one element with this occurence: "+ str(same_probability) + " occurence: "+ str(first_occurences))
+    try:
+        print("We have more than one element with this occurence: "+ str(same_probability).encode("utf-8") + " occurence: "+ str(first_occurences).encode("utf-8"))
+    except:
+        pass
     
     # this is better than before but, it is still not the perfect strategy, to collect good words.  
     # maybe we have to mix it with real wor(l)d statistics? or cheat on othe bpe-data, to make a better choice?
@@ -256,18 +271,18 @@ def build_dictionary(token_map):
     # emit all one element tokens
     # create a copy of the  
     current_token_map=rebuild_token_map(token_map)
-    print (current_token_map)
+    #print (str(current_token_map).encode("utf-8"))
     
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     
     emit_complete_tokens(current_token_map)
     current_token_map = remove_completed_tokens(current_token_map)
-    print (current_token_map)
+    # print (str(current_token_map).encode("utf-8"))
     
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     
     ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
-    for i in range(400):
+    for i in range(4000):
         print("------------------------------------")
         print("Round: "+str(i))
         print("------------------------------------")
@@ -303,6 +318,15 @@ def build_dictionary(token_map):
    
     # collect all remaining lexemes in the remaining map, with length 1 and write them into the tokenlist
 
+
+def walkFiles(path):
+    filenames = []
+    for root, _, files in os.walk(path):
+        for file_ in files:
+            filenames.append(os.path.realpath(os.path.join(root, file_)))
+    return filenames
+
+
 if __name__ == '__main__':
     
     initGlobalStatistics()
@@ -311,13 +335,22 @@ if __name__ == '__main__':
                  "D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\src\\com\\onedatapoint\\views\\AnalogClockTimePicker.java"
                  ]
     
+    filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt")
+    
     for filename in filenames:
-        tokens = runTokenizerForFile(filename)
-        print(tokens)
-        _token_map = calculateTokenOccurence(tokens)
-        
-        updateGlobalStatistics(_token_map)
-
+        try:
+            print("tokenizing :'"+filename+"'")
+            
+            # all tokens in serialized form for this file
+            tokens_for_file = runTokenizerForFile(filename)
+            
+            # all tokens aggregated
+            aggregated_tokenoccurence_for_file = calculateTokenOccurence(tokens_for_file)
+            
+            # update globally aggregated tokens
+            updateGlobalStatistics(aggregated_tokenoccurence_for_file)
+        except:
+            print ("Please delete this one..." + filename)
     
     _theGlobalTokenMap =getGlobalStatistics()
     
