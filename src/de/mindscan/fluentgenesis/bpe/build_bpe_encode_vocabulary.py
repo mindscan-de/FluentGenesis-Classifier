@@ -39,6 +39,32 @@ def calculateTokenOccurence( tokens ):
         result[token_value]+=1
     return result
 
+global_token_statistics = {}
+
+def initGlobalStatistics():
+    global global_token_statistics
+    global_token_statistics = {}
+
+def updateGlobalStatistics( token_map ):
+    global global_token_statistics
+    for key, count in token_map.items():
+        if key not in global_token_statistics:
+            global_token_statistics[key] = count
+        else:
+            global_token_statistics[key] += count
+    pass
+
+def getGlobalStatistics():
+    global global_token_statistics
+    return global_token_statistics
+
+def saveGlobalStatistics():
+    pass
+
+def loadGlobalStatistics():
+    pass 
+
+    
 ## TODO: save tokenmap
 ## TODO: load tokenmap
 
@@ -291,11 +317,16 @@ def build_dictionary(token_map):
     # collect all remaining lexemes in the remaining map, with length 1 and write them into the tokenlist
 
 if __name__ == '__main__':
+    initGlobalStatistics()
+    
     tokens = runTokenizerForFile("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\gen\\com\\onedatapoint\\R.java")
     tokens = runTokenizerForFile("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\src\\com\\onedatapoint\\views\\AnalogClockTimePicker.java")
     print(tokens)
+    print(type(tokens))
     
     _token_map = calculateTokenOccurence(tokens)
+    print(type(_token_map))
+    
     #print(token_map)
     
     #frequency2 = get_occurence_frequency(token_map)
