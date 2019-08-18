@@ -24,7 +24,7 @@ def get_lexeme_pairs(word):
 ## update global statistics
 # save global statistics
 
-def runTokenizer(filename):
+def runTokenizerForFile(filename):
     with open(filename,"rb") as current_source_file:
         all_lines_as_string = map(lambda line: line.decode('utf-8'), current_source_file.readlines()[0:])
         current_source_code = "".join(all_lines_as_string) 
@@ -291,8 +291,8 @@ def build_dictionary(token_map):
     # collect all remaining lexemes in the remaining map, with length 1 and write them into the tokenlist
 
 if __name__ == '__main__':
-    tokens = runTokenizer("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\gen\\com\\onedatapoint\\R.java")
-    tokens = runTokenizer("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\src\\com\\onedatapoint\\views\\AnalogClockTimePicker.java")
+    tokens = runTokenizerForFile("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\gen\\com\\onedatapoint\\R.java")
+    tokens = runTokenizerForFile("D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\src\\com\\onedatapoint\\views\\AnalogClockTimePicker.java")
     print(tokens)
     
     _token_map = calculateTokenOccurence(tokens)
