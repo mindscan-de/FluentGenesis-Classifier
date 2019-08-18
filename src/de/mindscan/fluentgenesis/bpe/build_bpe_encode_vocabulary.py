@@ -60,6 +60,9 @@ def getGlobalStatistics():
     global global_token_statistics
     return global_token_statistics
 
+## TODO: save tokenmap / global statistics
+## TODO: load tokenmap / global statistics
+
 def saveGlobalStatistics():
     pass
 
@@ -67,8 +70,6 @@ def loadGlobalStatistics():
     pass 
 
     
-## TODO: save tokenmap
-## TODO: load tokenmap
 
 # Step 2 - Build compression dictionary / compress dictionary save and emit new codes and stats
 # -------------------------------------
@@ -98,21 +99,33 @@ def get_occurence_frequency2(sorted_token_list):
             ngram_frequency[pair]+=count
     return ngram_frequency
 
+emitted_tokens = {}
+current_emitted_token_index = 0
 
+def emit_token(key):
+    global emitted_tokens
+    global current_emitted_token_index
+    if key not in emitted_tokens:
+        current_emitted_token_index += 1
+        emitted_tokens[key] = current_emitted_token_index
+
+def emit_probability(mp_token_pair, count):
+    pass
 
 def emit_most_probable_lexeme(mp_token_pair, count_of_most_probable_token):
     try:
+        emit_token("".join(mp_token_pair))
+        emit_probability(mp_token_pair, count_of_most_probable_token)
         print("emit rank - most frequent element: " + str(mp_token_pair).encode("utf-8") + " occurences...("+ str(count_of_most_probable_token) +")")
-        print("emit also as token.")
     except:
+        emit_token("".join(mp_token_pair))
+        emit_probability(mp_token_pair, count_of_most_probable_token)
         print("emit rank - most frequent element: " + str(mp_token_pair) + " occurences...("+ str(count_of_most_probable_token) +")")
-        print("emit also as token.")
-
 
 def emit_complete_tokens(current_token_map):
-#     for key in current_token_map.keys():
-#         if len(key) is 1:
-#             print("emit token - because it is complete now: " + key[0].encode("utf-8"))
+    for key in current_token_map.keys():
+        if len(key) is 1:
+            emit_token(key)
     pass
 
 
@@ -318,7 +331,7 @@ def build_dictionary(token_map):
    
     # collect all remaining lexemes in the remaining map, with length 1 and write them into the tokenlist
 
-
+# this should be a producer, which is always retrieves the next file.
 def walkFiles(path):
     filenames = []
     for root, _, files in os.walk(path):
@@ -331,6 +344,8 @@ if __name__ == '__main__':
     
     initGlobalStatistics()
     
+    # Big Code Except ontains all projects bigger than 2048 bytes ans less than 32768 Bytes from BigCode. (selected for diversity of names/strings)
+    # 27788 Files 61,6 MB
     filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt")
     
     for filename in filenames:
@@ -348,7 +363,10 @@ if __name__ == '__main__':
         except:
             print ("Please delete this one..." + filename)
     
-    _theGlobalTokenMap =getGlobalStatistics()
+    _theGlobalTokenMap=getGlobalStatistics()
+    
+    # TODO: How many tokens...
+    # save the global token occurence H(0) Map
     
     build_dictionary(_theGlobalTokenMap)
     
