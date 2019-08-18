@@ -279,17 +279,21 @@ def select_best_bpe_match(current_token_frequencies):
         while True:
             next_element = next(current_iterator)
             next_occurences = current_token_frequencies[next_element]
+            
             if first_occurences == next_occurences:
                 same_probability.append(next_element)
             else:
                 break;
     except:
+        # TOOD: will have to investigate that... especially
+        # case 1, next_occurence is 1 
         pass
     
-    try:
-        print("We have more than one element with this occurence: "+ str(same_probability).encode("utf-8") + " occurence: "+ str(first_occurences).encode("utf-8"))
-    except:
-        pass
+    #
+    #try:
+    #    print("We have more than one element with this occurence: "+ str(same_probability).encode("utf-8") + " occurence: "+ str(first_occurences).encode("utf-8"))
+    #except:
+    #    pass
     
     # this is better than before but, it is still not the perfect strategy, to collect good words.  
     # maybe we have to mix it with real wor(l)d statistics? or cheat on othe bpe-data, to make a better choice?
