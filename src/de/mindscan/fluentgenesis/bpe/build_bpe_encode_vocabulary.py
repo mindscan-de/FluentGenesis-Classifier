@@ -86,19 +86,6 @@ def loadGlobalStatistics():
 def sort_by_lexeme_occurence(token_map):
     return OrderedDict(sorted(token_map.items(), key=lambda item:item[1], reverse=True ))
 
-
-def get_occurence_frequency(sorted_token_list):
-    ngram_frequency = {}
-    for token, count in sorted_token_list.items():
-        #token_as_tuple = tuple(token)
-        token_as_tuple = token
-        token_pairs = get_lexeme_pairs(token_as_tuple)
-        for pair in token_pairs:
-            if pair not in ngram_frequency:
-                ngram_frequency[pair] = 0;
-            ngram_frequency[pair]+=count
-    return ngram_frequency
-
 def get_occurence_frequency2(sorted_token_list):
     ngram_frequency = {}
     for token_as_tuple, count in sorted_token_list.items():
@@ -326,11 +313,6 @@ if __name__ == '__main__':
     
     _token_map = calculateTokenOccurence(tokens)
     print(type(_token_map))
-    
-    #print(token_map)
-    
-    #frequency2 = get_occurence_frequency(token_map)
-    #print(sort_by_lexeme_occurence(frequency2))
     
     build_dictionary(_token_map)
     
