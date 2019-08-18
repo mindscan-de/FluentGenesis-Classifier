@@ -331,10 +331,6 @@ if __name__ == '__main__':
     
     initGlobalStatistics()
     
-    filenames = ["D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\gen\\com\\onedatapoint\\R.java",
-                 "D:\\Projects\\SinglePageApplication\\Angular\\FluentGenesis-Classifier\\ipynb\\java-example\\1datapoint\\src\\com\\onedatapoint\\views\\AnalogClockTimePicker.java"
-                 ]
-    
     filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt")
     
     for filename in filenames:
