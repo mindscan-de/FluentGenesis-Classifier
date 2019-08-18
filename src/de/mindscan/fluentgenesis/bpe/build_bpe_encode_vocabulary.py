@@ -210,8 +210,32 @@ def select_best_bpe_match(current_token_frequencies):
         return first_element
     
     # at least two elements have the same count, we should collect them and rank them.
+    same_probability = []
+    same_probability.append(first_element)
+    same_probability.append(next_element)
+
+    try:    
+        while True:
+            next_element = next(current_iterator)
+            next_occurences = current_token_frequencies[next_element]
+            if first_occurences == next_occurences:
+                same_probability.append(next_element)
+            else:
+                break;
+    except:
+        pass
     
-    return first_element
+    print("We have more than one element with this occurence: "+ str(same_probability) + " occurence: "+ str(first_occurences))
+    
+    # this is better than before but, it is still not the perfect strategy, to collect good words.  
+    # maybe we have to mix it with real wor(l)d statistics? or cheat on othe bpe-data, to make a better choice?
+    # but i guess, 14 GB of sourcecode can solve the statistics problem.
+    # Maybe we should not count "words" if they are too long... see (get_occurence_frequency2)
+    # Because in the end we still compose to big words... and start clogging up the dictionary with technical jargon...
+       
+    shortest_element = min(same_probability, key=(lambda pair: len(pair[0])+len(pair[1])))
+    
+    return shortest_element
 
 
 
@@ -230,7 +254,7 @@ def build_dictionary(token_map):
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     
     ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
-    for i in range(128):
+    for i in range(400):
         print("------------------------------------")
         print("Round: "+str(i))
         print("------------------------------------")
