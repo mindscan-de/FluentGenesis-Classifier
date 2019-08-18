@@ -27,6 +27,7 @@ SOFTWARE.
 '''
 
 import os
+import json
 
 from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
@@ -112,6 +113,10 @@ def loadGlobalStatistics():
 def sort_by_lexeme_occurence(token_map):
     return OrderedDict(sorted(token_map.items(), key=lambda item:item[1], reverse=True ))
 
+def sort_by_lexeme_value(token_map):
+    return OrderedDict(sorted(token_map.items(), key=lambda item:item[1] ))
+
+
 def get_occurence_frequency2(sorted_token_list):
     ngram_frequency = {}
     for token_as_tuple, count in sorted_token_list.items():
@@ -132,6 +137,10 @@ def emit_token(key):
         current_emitted_token_index += 1
         emitted_tokens[key] = current_emitted_token_index
 
+def get_emitted_token_dict():
+    global emitted_tokens
+    return emitted_tokens
+
 def emit_probability(mp_token_pair, count):
     pass
 
@@ -148,7 +157,13 @@ def emit_most_probable_lexeme(mp_token_pair, count_of_most_probable_token):
 def emit_complete_tokens(current_token_map):
     for key in current_token_map.keys():
         if len(key) is 1:
-            emit_token(key)
+            if type(key) is list:
+                emit_token(key[0])
+            else:
+                if type(key) is tuple:
+                    emit_token(key[0])
+                else:
+                    emit_token(key)
     pass
 
 
@@ -322,7 +337,7 @@ def build_dictionary(token_map):
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     
     ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
-    for i in range(4000):
+    for i in range(100):
         print("------------------------------------")
         print("Round: "+str(i))
         print("------------------------------------")
@@ -373,7 +388,7 @@ if __name__ == '__main__':
     
     # Big Code Except ontains all projects bigger than 2048 bytes ans less than 32768 Bytes from BigCode. (selected for diversity of names/strings)
     # 27788 Files 61,6 MB
-    filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt")
+    filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt\\1datapoint_1")
     
     for filename in filenames:
         try:
@@ -396,5 +411,8 @@ if __name__ == '__main__':
     # save the global token occurence H(0) Map
     
     build_dictionary(_theGlobalTokenMap)
+    
+    with open('tokens.json', 'w') as json_file:
+        json.dump(sort_by_lexeme_value(emitted_tokens), json_file)
     
     pass
