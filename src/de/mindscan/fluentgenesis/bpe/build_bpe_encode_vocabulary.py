@@ -166,6 +166,14 @@ def emit_complete_tokens(current_token_map):
                     emit_token(key)
     pass
 
+def emit_unknown_partial_lexemes(current_token_map):
+    for key, _ in current_token_map.items():
+        for token in key:
+            # token might already be present because of encoding in progress, but other components might be still unknown.
+            emit_token(token)
+    pass
+
+
 
 def remove_completed_tokens(current_token_map):
     keys_to_remove = []
@@ -321,7 +329,6 @@ def select_best_bpe_match(current_token_frequencies):
     return shortest_element
 
 
-
 def build_dictionary(token_map):
     # emit all one element tokens
     # create a copy of the  
@@ -366,12 +373,11 @@ def build_dictionary(token_map):
     
     # break if to many tokens emitted
     
-    # STILL @TODO: we must still work on the remaining "words", which do not have an encoding yet
-     
     # flush all remaining single tokens / flush all remaining tokens not in the tokenlist.
-    # flush all other statistics
-   
-    # collect all remaining lexemes in the remaining map, with length 1 and write them into the tokenlist
+    emit_unknown_partial_lexemes(current_token_map)
+    
+    # TODO: flush all other statistics
+    pass
 
 # this should be a producer, which is always retrieves the next file.
 def walkFiles(path):
@@ -388,6 +394,7 @@ if __name__ == '__main__':
     
     # Big Code Except ontains all projects bigger than 2048 bytes ans less than 32768 Bytes from BigCode. (selected for diversity of names/strings)
     # 27788 Files 61,6 MB
+    #filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt")
     filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt\\1datapoint_1")
     
     for filename in filenames:
@@ -407,11 +414,11 @@ if __name__ == '__main__':
     
     _theGlobalTokenMap=getGlobalStatistics()
     
-    # TODO: How many tokens...
-    # save the global token occurence H(0) Map
+    # TODO: Statistics ... How many tokens...
     
     build_dictionary(_theGlobalTokenMap)
     
+    # save the global token occurence H(0) Map
     with open('tokens.json', 'w') as json_file:
         json.dump(sort_by_lexeme_value(emitted_tokens), json_file)
     
