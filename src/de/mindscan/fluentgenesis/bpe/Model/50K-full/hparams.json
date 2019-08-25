@@ -1,0 +1,1 @@
+{"global_wordlist": "fulll-50k-global-token-count.json", "token_bpefile": "full-50k-vocab.bpe", "token_filename": "full-50k-tokens.json", "path": "D:\\Downloads\\Big-Code-full", "split_if_occurence_less_than": 1024, "tokens_to_emit": 50000}

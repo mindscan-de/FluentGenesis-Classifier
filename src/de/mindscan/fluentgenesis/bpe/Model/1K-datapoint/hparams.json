@@ -1,0 +1,1 @@
+{"tokens_to_emit": 1000, "token_bpefile": "datapoint-1k-vocab.bpe.json", "path": "D:\\Downloads\\Big-Code-excerpt\\1datapoint_1", "token_filename": "datapoint-1k-tokens.json", "split_if_occurence_less_than": 8, "global_wordlist": "datapoint-1k-global-token-count.json"}

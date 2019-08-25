@@ -1,0 +1,1 @@
+{"global_wordlist": "excerpt-16k-global-token-count.json", "token_bpefile": "excerpt-16k-vocab.bpe.json", "token_filename": "excerpt-16k-tokens.json", "path": "D:\\Downloads\\Big-Code-excerpt", "split_if_occurence_less_than": 512, "tokens_to_emit": 16000}
