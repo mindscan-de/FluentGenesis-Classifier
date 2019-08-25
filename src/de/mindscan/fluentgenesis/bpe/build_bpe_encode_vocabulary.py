@@ -27,7 +27,9 @@ SOFTWARE.
 '''
 
 import os
+import datetime
 import json
+import regex as re
 
 from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
@@ -129,6 +131,8 @@ def get_occurence_frequency2(sorted_token_list):
 
 emitted_tokens = {}
 current_emitted_token_index = 0
+emitted_bpe = {}
+current_emitted_bpe_index=0;
 
 def emit_token(key):
     global emitted_tokens
@@ -142,18 +146,37 @@ def get_emitted_token_dict():
     return emitted_tokens
 
 def emit_probability(mp_token_pair, count):
-    pass
+    global emitted_bpe
+    global current_emitted_bpe_index
+    try:
+        emitted_bpe[current_emitted_bpe_index]= {str(mp_token_pair):count}
+    except:
+        try:
+            emitted_bpe[current_emitted_bpe_index]= {str(mp_token_pair).encode('utf_8'):count}
+        except:
+            print ("could not emit good pair... encoding might be shit now...")
+            
+    current_emitted_bpe_index+=1
+
+def get_emitted_bpe_list():
+    global emitted_bpe
+    return emitted_bpe
 
 def emit_most_probable_lexeme(mp_token_pair, count_of_most_probable_token):
     try:
         emit_token("".join(mp_token_pair))
         emit_probability(mp_token_pair, count_of_most_probable_token)
-        print("emit rank - most frequent element: " + str(mp_token_pair).encode("utf-8") + " occurences...("+ str(count_of_most_probable_token) +")")
+        try:
+            print("emit rank - most frequent element: " + str(mp_token_pair).encode("utf-8") + " occurences...("+ str(count_of_most_probable_token) +")")
+        except:
+            try:
+                print("emit rank - most frequent element: " + str(mp_token_pair) + " occurences...("+ str(count_of_most_probable_token) +")")
+            except:
+                print("cannot report token... but it got emitted.")
     except:
-        emit_token("".join(mp_token_pair))
-        emit_probability(mp_token_pair, count_of_most_probable_token)
-        print("emit rank - most frequent element: " + str(mp_token_pair) + " occurences...("+ str(count_of_most_probable_token) +")")
-
+        print("could not emit token properly.")
+        
+        
 def emit_complete_tokens(current_token_map):
     for key in current_token_map.keys():
         if len(key) is 1:
@@ -166,13 +189,13 @@ def emit_complete_tokens(current_token_map):
                     emit_token(key)
     pass
 
+
 def emit_unknown_partial_lexemes(current_token_map):
     for key, _ in current_token_map.items():
         for token in key:
             # token might already be present because of encoding in progress, but other components might be still unknown.
             emit_token(token)
     pass
-
 
 
 def remove_completed_tokens(current_token_map):
@@ -323,13 +346,60 @@ def select_best_bpe_match(current_token_frequencies):
     # but i guess, 14 GB of sourcecode can solve the statistics problem.
     # Maybe we should not count "words" if they are too long... see (get_occurence_frequency2)
     # Because in the end we still compose to big words... and start clogging up the dictionary with technical jargon...
-       
     shortest_element = min(same_probability, key=(lambda pair: len(pair[0])+len(pair[1])))
     
     return shortest_element
 
+def find_word_containing( pair, current_token_map ):
+    left, right = pair
+    for element, _ in current_token_map.items():
+        if left not in element:
+            continue
+        if right not in element:
+            continue
+        
+        i=0;
+        while i<len(element):
+            try :
+                i=element.index(left,i)
+            except:
+                break;
+            
+            if i+1 < len(element) and element[i+1]==right:
+                return element
+            else:
+                i+=1
+    pass
 
-def build_dictionary(token_map):
+
+# too expensive and not very useful...
+# pruning does not help, it is more of an indicator, where to split a token, 
+# because these items/tokencombinations are the things, which make a token (realy) unique and distinguishable.
+# it was an idea, to get rid of recalculating the statistics for those rare items over and over again
+def prune_dictionary(current_token_frequencies, current_token_map):
+    lowcount_lexemes_first = sort_by_lexeme_value(current_token_frequencies)
+    pruned_count = 0;
+    may_be_pruned = 0;
+    for pair, count in lowcount_lexemes_first.items():
+        if count == 1:
+            may_be_pruned +=1
+            word = "".join(pair);
+            if word in current_token_map:
+                current_token_map.pop(word)
+                pruned_count += 1
+            else:
+                # find word, where this element is inside, remove the intire word from the dictionary? 
+                word = find_word_containing(pair, current_token_map)
+                if word is not None and len(word) < 4:
+                    # but word will not count as much any more, so why trying to aquire statistics from this particular word, if count == 1
+                    current_token_map.pop(word)
+                    pruned_count += 1
+                pass
+    print ("pruned "+str(pruned_count)+" out of "+str(may_be_pruned)+" candidate items from dictionary")
+    pass
+
+
+def build_dictionary(token_map,hparams):
     # emit all one element tokens
     # create a copy of the  
     current_token_map=rebuild_token_map(token_map)
@@ -344,19 +414,27 @@ def build_dictionary(token_map):
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     
     ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
-    for i in range(100):
+    for i in range(hparams['tokens_to_emit']):
         print("------------------------------------")
         print("Round: "+str(i))
-        print("------------------------------------")
         
-        # find the most fequent / most probable pair
+        # TODO: nur jede n-te runde berechnen, eigentlich so lange, 
+        # wie das ende eines Tokens nicht der start eines frueheren anderen Tokens ist
+        # und der start eines Tokens nicht das ende eines frueheren anderen Tokens ist
+        # so lange stimmt die Reihenfolge naemlich...
+        # nur dann muessen die frequenzen neu berechnet werden.
+        # andernfalls brauchen nur die ersetzungen erfolgen.
         current_token_frequencies = get_occurence_frequency2(current_token_map)
+            
         mp_token_pair = select_best_bpe_match(current_token_frequencies)
         
-        ## ONLY WITH the for - loop
         if current_token_frequencies[mp_token_pair] < 2:
             # we are ready, we do not have any duplicates
             break
+        
+        # Pruning the dictionary - seems not to be effective
+        #if i%50 == 49:
+            #prune_dictionary(current_token_frequencies, current_token_map)
         
         # emit first_token_pair
         emit_most_probable_lexeme(mp_token_pair, current_token_frequencies[mp_token_pair])
@@ -368,16 +446,16 @@ def build_dictionary(token_map):
         emit_complete_tokens(current_token_map)
         current_token_map = remove_completed_tokens(current_token_map)
         
-        print("the whole dictionary has now length : " + str(len(current_token_map)))
+        if i%10 == 0:
+            print("the whole dictionary has now length : " + str(len(current_token_map)))
         # current_token_map = emit_tokens(current_token_map)
     
     # break if to many tokens emitted
     
     # flush all remaining single tokens / flush all remaining tokens not in the tokenlist.
     emit_unknown_partial_lexemes(current_token_map)
-    
-    # TODO: flush all other statistics
     pass
+
 
 # this should be a producer, which is always retrieves the next file.
 def walkFiles(path):
@@ -388,14 +466,63 @@ def walkFiles(path):
     return filenames
 
 
-if __name__ == '__main__':
+def read_hparams(model):
+    with open(os.path.join("Model",model,"hparams.json"), 'r') as paramfile_file:
+        hparams = json.load(paramfile_file)
+        return hparams
+
+
+def save_hparams(model, params):
+    with open(os.path.join("Model",model,"hparams.json"), 'w') as paramfile_file:
+        json.dump(params, paramfile_file)
+
+
+# TODO: regex-split on heavy strings, if split, then it will produce more convincing words and tokens.
+#       see often useless concatenations with quotations, comma, period and undesired spaces as well concatenations of strings and numbers, when not needed.  
+def split_rare_dictionary_items(hparams, _theGlobalTokenMap):
+    splitDictionaryItems={}
     
+    # this very useful regex pattern comes from "openai/gpt-2" implementation
+    # https://github.com/openai/gpt-2 also MIT-License
+    # https://github.com/openai/gpt-2/blob/master/LICENSE
+    thepattern = re.compile(r"""'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
+    
+    to_remove = []
+    numberOfItems = 0
+    for token, count in _theGlobalTokenMap.items():
+        if count < hparams['split_if_occurence_less_than']:
+            to_remove.append(token)
+            try:
+                numberOfItems += 1
+                # print("#" + str(numberOfItems)+" count "+ str(count)+" length: " + str(len(token))+" value: " + str(token))
+                for textToken in re.findall(thepattern, token):
+                    #print("--> would be split into: " + str(textToken))
+                    if textToken in splitDictionaryItems:
+                        splitDictionaryItems[textToken] += count
+                    else:
+                        splitDictionaryItems[textToken] = count
+            
+            except:
+                print()
+    
+    for token in to_remove:
+        _theGlobalTokenMap.pop(token)
+        
+    return splitDictionaryItems
+
+
+def run_me(model_name):
+    hparams = read_hparams(model_name)
+    
+    time_at_start = datetime.datetime.now()
+    print( "time at start: " + str(time_at_start))
+
     initGlobalStatistics()
     
-    # Big Code Except ontains all projects bigger than 2048 bytes ans less than 32768 Bytes from BigCode. (selected for diversity of names/strings)
-    # 27788 Files 61,6 MB
-    #filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt")
-    filenames = walkFiles("D:\\Downloads\\Big-Code-excerpt\\1datapoint_1")
+    filenames = walkFiles(hparams['path'])
+    
+    time_after_walkingfiles = datetime.datetime.now()
+    print( "time after walking files: " + str(time_after_walkingfiles))
     
     for filename in filenames:
         try:
@@ -410,16 +537,54 @@ if __name__ == '__main__':
             # update globally aggregated tokens
             updateGlobalStatistics(aggregated_tokenoccurence_for_file)
         except:
-            print ("Please delete this one..." + filename)
+            try:
+                print ("Not considered this one..." + filename)
+            except:
+                print ("filename is strange...")
     
     _theGlobalTokenMap=getGlobalStatistics()
     
-    # TODO: Statistics ... How many tokens...
+    time_after_aggregating_statistics = datetime.datetime.now()
+    print( "time after aggregating words: " + str(time_after_aggregating_statistics))
+
+    newDict = split_rare_dictionary_items(hparams, _theGlobalTokenMap)
+    updateGlobalStatistics(newDict)
+        
+    time_after_splitting_leastFrequentWords = datetime.datetime.now()
+    print( "time after splitting least frequent words: " + str(time_after_splitting_leastFrequentWords))
     
-    build_dictionary(_theGlobalTokenMap)
+    print("number of items in new dictionary: " + str(len(newDict)))
+    print("number of items merged dictionary: " + str(len(_theGlobalTokenMap)))
     
+    with open(hparams['global_wordlist'], 'w') as global_count_file:
+        json.dump(sort_by_lexeme_value(_theGlobalTokenMap),global_count_file)
+    
+    build_dictionary(_theGlobalTokenMap,hparams)
+    
+    time_after_buildingDict = datetime.datetime.now()
+    print( "time after building dictionary: " + str(time_after_buildingDict))
+
+    # save the global bpe file (this is important to transform each file to the same tokens
+    with open(hparams['token_bpefile'], 'w') as bpe_json_file:
+        bpeList = get_emitted_bpe_list()
+        json.dump(bpeList, bpe_json_file)
+        
     # save the global token occurence H(0) Map
-    with open('tokens.json', 'w') as json_file:
+    with open(hparams['token_filename'], 'w') as json_file:
         json.dump(sort_by_lexeme_value(emitted_tokens), json_file)
     
+    
+    print( "time at start: " + str(time_at_start))
+    print( "time after walking files: " + str(time_after_walkingfiles))
+    print( "time after aggregating words: " + str(time_after_aggregating_statistics))
+    print( "time after splitting least frequent words: " + str(time_after_splitting_leastFrequentWords))
+    print( "time after building dictionary: " + str(time_after_buildingDict))
+    
     pass
+    
+
+if __name__ == '__main__':
+    # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
+    model_name = "16K-excerpt"
+    
+    run_me(model_name)
