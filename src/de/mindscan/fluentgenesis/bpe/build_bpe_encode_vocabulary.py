@@ -569,7 +569,7 @@ def run_me(model_name):
     
     print("number of items merged dictionary: " + str(len(_theGlobalTokenMap)))
     
-    #build_dictionary(hparams,_theGlobalTokenMap)
+    build_dictionary(hparams,_theGlobalTokenMap)
     
     time_after_buildingDict = datetime.datetime.now()
     print( "time after building dictionary: " + str(time_after_buildingDict))
