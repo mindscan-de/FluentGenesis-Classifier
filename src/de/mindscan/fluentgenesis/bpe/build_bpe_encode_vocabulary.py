@@ -86,13 +86,13 @@ def getGlobalStatistics():
     global global_token_statistics
     return global_token_statistics
 
-## TODO: load tokenmap / global statistics
 
 def save_global_statistics(hparams, model_name, _theGlobalTokenMap):
     with open(os.path.join("Model", model_name, hparams['global_wordlist']), 'w') as global_count_file:
         json.dump(sort_by_lexeme_value(_theGlobalTokenMap), global_count_file)
 
 
+## TODO: load tokenmap / global statistics
 def loadGlobalStatistics():
     pass 
 
@@ -517,59 +517,73 @@ def run_me(model_name):
     
     time_at_start = datetime.datetime.now()
     print( "time at start: " + str(time_at_start))
+    time_after_walkingfiles = None
+    time_after_aggregating_statistics = None
+    time_after_splitting_leastFrequentWords = None
 
     initGlobalStatistics()
     
-    filenames = walkFiles(hparams['path'])
-    
-    time_after_walkingfiles = datetime.datetime.now()
-    print( "time after walking files: " + str(time_after_walkingfiles))
-    
-    for filename in filenames:
-        try:
-            print("tokenizing :'"+filename+"'")
-            
-            # all tokens in serialized form for this file
-            tokens_for_file = runTokenizerForFile(filename)
-            
-            # all tokens aggregated
-            aggregated_tokenoccurence_for_file = calculateTokenOccurence(tokens_for_file)
-            
-            # update globally aggregated tokens
-            updateGlobalStatistics(aggregated_tokenoccurence_for_file)
-        except:
-            try:
-                print ("Not considered this one..." + filename)
-            except:
-                print ("filename is strange...")
-    
-    _theGlobalTokenMap=getGlobalStatistics()
-    
-    time_after_aggregating_statistics = datetime.datetime.now()
-    print( "time after aggregating words: " + str(time_after_aggregating_statistics))
-
-    newDict = split_rare_dictionary_items(hparams, _theGlobalTokenMap)
-    updateGlobalStatistics(newDict)
+    if os.path.isfile(os.path.join("Model", model_name, hparams['global_wordlist'])) is False:
         
-    time_after_splitting_leastFrequentWords = datetime.datetime.now()
-    print( "time after splitting least frequent words: " + str(time_after_splitting_leastFrequentWords))
+        filenames = walkFiles(hparams['path'])
+        time_after_walkingfiles = datetime.datetime.now()
+        print( "time after walking files: " + str(time_after_walkingfiles))
+        
+        for filename in filenames:
+            try:
+                print("tokenizing :'"+filename+"'")
+                
+                # all tokens in serialized form for this file
+                tokens_for_file = runTokenizerForFile(filename)
+                
+                # all tokens aggregated
+                aggregated_tokenoccurence_for_file = calculateTokenOccurence(tokens_for_file)
+                
+                # update globally aggregated tokens
+                updateGlobalStatistics(aggregated_tokenoccurence_for_file)
+            except:
+                try:
+                    print ("Not considered this one..." + filename)
+                except:
+                    print ("filename is strange...")
+        
+        _theGlobalTokenMap=getGlobalStatistics()
+        
+        time_after_aggregating_statistics = datetime.datetime.now()
+        print( "time after aggregating words: " + str(time_after_aggregating_statistics))
     
-    print("number of items in new dictionary: " + str(len(newDict)))
+        newDict = split_rare_dictionary_items(hparams, _theGlobalTokenMap)
+        updateGlobalStatistics(newDict)
+    
+        _theGlobalTokenMap=getGlobalStatistics()
+            
+        time_after_splitting_leastFrequentWords = datetime.datetime.now()
+        print( "time after splitting least frequent words: " + str(time_after_splitting_leastFrequentWords))
+        
+        print("number of items in new dictionary: " + str(len(newDict)))
+    
+        save_global_statistics(hparams, model_name, _theGlobalTokenMap)
+    else:
+        with open(os.path.join("Model", model_name, hparams['global_wordlist']),'r') as wordfile:
+            _theGlobalTokenMap = json.load(wordfile)
+    
     print("number of items merged dictionary: " + str(len(_theGlobalTokenMap)))
-
-    save_global_statistics(hparams, model_name, _theGlobalTokenMap)
     
-    build_dictionary(hparams,_theGlobalTokenMap)
+    #build_dictionary(hparams,_theGlobalTokenMap)
     
     time_after_buildingDict = datetime.datetime.now()
     print( "time after building dictionary: " + str(time_after_buildingDict))
 
-    save_bpe_encodings_and_tokens(hparams, model_name, get_emitted_bpe_list(), emitted_tokens)
+    #save_bpe_encodings_and_tokens(hparams, model_name, get_emitted_bpe_list(), emitted_tokens)
     
+    print( "===[ The End ]===")
     print( "time at start: " + str(time_at_start))
-    print( "time after walking files: " + str(time_after_walkingfiles))
-    print( "time after aggregating words: " + str(time_after_aggregating_statistics))
-    print( "time after splitting least frequent words: " + str(time_after_splitting_leastFrequentWords))
+    if time_after_walkingfiles is not None: 
+        print( "time after walking files: " + str(time_after_walkingfiles))
+    if time_after_aggregating_statistics is not None:
+        print( "time after aggregating words: " + str(time_after_aggregating_statistics))
+    if time_after_splitting_leastFrequentWords is not None:
+        print( "time after splitting least frequent words: " + str(time_after_splitting_leastFrequentWords))
     print( "time after building dictionary: " + str(time_after_buildingDict))
     
     pass
@@ -577,6 +591,6 @@ def run_me(model_name):
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
-    model_name = "16K-excerpt"
+    model_name = "50K-full"
     
     run_me(model_name)
