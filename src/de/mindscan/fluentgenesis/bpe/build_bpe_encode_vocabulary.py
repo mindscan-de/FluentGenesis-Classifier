@@ -390,7 +390,7 @@ def prune_dictionary(current_token_frequencies, current_token_map):
     pass
 
 
-def build_dictionary(token_map,hparams):
+def build_dictionary(hparams, token_map):
     # emit all one element tokens
     # create a copy of the  
     current_token_map=rebuild_token_map(token_map)
@@ -502,6 +502,16 @@ def split_rare_dictionary_items(hparams, _theGlobalTokenMap):
     return splitDictionaryItems
 
 
+def save_bpe_encodings_and_tokens(hparams, model_name, _bpe_list, _emitted_tokens):
+    # save the bytepair encodings
+    with open(hparams['token_bpefile'], 'w') as bpe_json_file:
+        json.dump(_bpe_list, bpe_json_file)
+        
+    # save tokens
+    with open(hparams['token_filename'], 'w') as json_file:
+        json.dump(sort_by_lexeme_value(_emitted_tokens), json_file)
+
+
 def run_me(model_name):
     hparams = read_hparams(model_name)
     
@@ -549,20 +559,12 @@ def run_me(model_name):
 
     save_global_statistics(hparams, model_name, _theGlobalTokenMap)
     
-    build_dictionary(_theGlobalTokenMap,hparams)
+    build_dictionary(hparams,_theGlobalTokenMap)
     
     time_after_buildingDict = datetime.datetime.now()
     print( "time after building dictionary: " + str(time_after_buildingDict))
 
-    # save the global bpe file (this is important to transform each file to the same tokens
-    with open(hparams['token_bpefile'], 'w') as bpe_json_file:
-        bpeList = get_emitted_bpe_list()
-        json.dump(bpeList, bpe_json_file)
-        
-    # save the global token occurence H(0) Map
-    with open(hparams['token_filename'], 'w') as json_file:
-        json.dump(sort_by_lexeme_value(emitted_tokens), json_file)
-    
+    save_bpe_encodings_and_tokens(hparams, model_name, get_emitted_bpe_list(), emitted_tokens)
     
     print( "time at start: " + str(time_at_start))
     print( "time after walking files: " + str(time_after_walkingfiles))
