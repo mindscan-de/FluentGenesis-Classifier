@@ -86,11 +86,12 @@ def getGlobalStatistics():
     global global_token_statistics
     return global_token_statistics
 
-## TODO: save tokenmap / global statistics
 ## TODO: load tokenmap / global statistics
 
-def saveGlobalStatistics():
-    pass
+def save_global_statistics(hparams, model_name, _theGlobalTokenMap):
+    with open(os.path.join("Model", model_name, hparams['global_wordlist']), 'w') as global_count_file:
+        json.dump(sort_by_lexeme_value(_theGlobalTokenMap), global_count_file)
+
 
 def loadGlobalStatistics():
     pass 
@@ -545,9 +546,8 @@ def run_me(model_name):
     
     print("number of items in new dictionary: " + str(len(newDict)))
     print("number of items merged dictionary: " + str(len(_theGlobalTokenMap)))
-    
-    with open(hparams['global_wordlist'], 'w') as global_count_file:
-        json.dump(sort_by_lexeme_value(_theGlobalTokenMap),global_count_file)
+
+    save_global_statistics(hparams, model_name, _theGlobalTokenMap)
     
     build_dictionary(_theGlobalTokenMap,hparams)
     
