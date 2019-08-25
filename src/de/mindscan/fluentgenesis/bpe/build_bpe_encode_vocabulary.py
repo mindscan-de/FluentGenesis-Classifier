@@ -220,7 +220,7 @@ def rebuild_token_map(token_map):
     return result
 
 
-def calculate_replacement_key_for(token, first_mptl, next_mptl, joined):
+def build_replacement_key_for(token, first_mptl, next_mptl, joined):
     replacement_key=[]
     
     i=0
@@ -234,7 +234,7 @@ def calculate_replacement_key_for(token, first_mptl, next_mptl, joined):
             replacement_key.extend(token[i:])
             break;
         
-        if token[i] == first_mptl and i<len(token)-1 and token[i+1] == next_mptl:
+        if token[i] == first_mptl and (i+1)<len(token) and token[i+1] == next_mptl:
             # if next is next_mptl -> add joined to list
             replacement_key.append(joined)
             i+=2
@@ -242,15 +242,7 @@ def calculate_replacement_key_for(token, first_mptl, next_mptl, joined):
             # if next is not next_mptl -> only the first_mptl 
             replacement_key.append(token[i])
             i+=1
-            
-        # then copy more, till ready
-        #continue
     
-    #try:
-    #    print(str(token).encode("utf-8") +" -> " + str(replacement_key).encode("utf-8") + " because: " + str(joined).encode("utf-8"))
-    #except:
-    #    print(str(token).encode("utf-8") +" -> " + str(replacement_key).encode("utf-8") + " because: " + str(joined).encode("utf-8"))
-        
     return tuple(replacement_key)
 
 
@@ -270,11 +262,9 @@ def replace_most_probable_lexemes(mp_token_pair, current_token_map):
         if next_mptl not in token:
             continue
         
-        # more expensive implementation of substitution
-        # replace each occurence of the mp_token_pair with the joined key
-        new_key = calculate_replacement_key_for(token, first_mptl, next_mptl, joined)
+        new_key = build_replacement_key_for(token, first_mptl, next_mptl, joined)
         
-        # if still the same, we do nothing        
+        # if still the same, we do nothing    
         if new_key == token :
             continue
         
