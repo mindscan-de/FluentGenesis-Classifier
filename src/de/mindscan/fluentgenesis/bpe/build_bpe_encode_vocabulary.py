@@ -504,11 +504,11 @@ def split_rare_dictionary_items(hparams, _theGlobalTokenMap):
 
 def save_bpe_encodings_and_tokens(hparams, model_name, _bpe_list, _emitted_tokens):
     # save the bytepair encodings
-    with open(hparams['token_bpefile'], 'w') as bpe_json_file:
+    with open(os.path.join("Model", model_name, hparams['token_bpefile']), 'w') as bpe_json_file:
         json.dump(_bpe_list, bpe_json_file)
         
     # save tokens
-    with open(hparams['token_filename'], 'w') as json_file:
+    with open(os.path.join("Model", model_name, hparams['token_filename']), 'w') as json_file:
         json.dump(sort_by_lexeme_value(_emitted_tokens), json_file)
 
 
