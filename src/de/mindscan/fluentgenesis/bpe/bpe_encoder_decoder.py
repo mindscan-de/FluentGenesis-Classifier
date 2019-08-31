@@ -126,8 +126,8 @@ class SimpleBPEEncoder(object):
         return self.__bpe_cache [ token ]
     
     
-    def _putInBPECache(self, text_token, encoded_value):
-        self.cache[text_token] = encoded_value
+    def __putInBPECache(self, text_token, encoded_value):
+        self.__bpe_cache[text_token] = encoded_value
     
     
     def __build_lexemes_for_token(self, token):
@@ -177,7 +177,7 @@ class SimpleBPEEncoder(object):
             
             ## replace all occurences
             first_mp_bp, next_mp_bp = most_frequent_bpe_pair
-            word = build_replacement_key_for(token, first_mp_bp, next_mp_bp, "".join(most_frequent_bpe_pair))
+            word = build_replacement_key_for(word, first_mp_bp, next_mp_bp, "".join(most_frequent_bpe_pair))
             
             if len(word) == 1:
                 break
