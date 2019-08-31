@@ -89,7 +89,34 @@ class SimpleBPEEncoder(object):
             return [ token ]
         
         
-        # transform the word, until it is encodeable / embeddable
+        ## see also: "Random Access Data Compression" by Philip Gage, C/C++ User Journal, September 1997, Page 23--30
+        ##
+        ## Page 23 reads:
+        ## >> "While (Compression is possible)"
+        
+        # transform the word, as long as it is encodeable / embeddable
+        while True:
+            ## -------------------------------------------
+            ## >> "Find most frequent byte pair in buffer" 
+            ## -------------------------------------------
+            ## Since we make use of a precomuted statistics,
+            ## and the statistics is ordered by occurence (most probable first) 
+            ## we can look up the statistics, 
+            ## and pick the one which is most used, 
+            ## by finding the lexeme pair with the mininal index. 
+            most_frequent_bpe_pair = ()
+            
+            # if we do not find an most probable byte pair / lexeme pair - there are no more combinings left and 
+            # Compression is not more possible, so we must leave the outer loop.
+            if most_frequent_bpe_pair not in self.__bpe_pairs:
+                break;
+            
+            ## ---------------------------------------------------
+            ## >> "Add pair to table and assign it as unused byte"
+            ## ---------------------------------------------------
+            ## we do not think in bytes here but assign it an index, from a precomuted statistics
+            
+            ## replace all occurences
         
         return []
     
@@ -137,7 +164,7 @@ def run_me(model_name):
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
-    model_name = "50K-full"
+    model_name = "16K-excerpt"
     
     run_me(model_name)
 
