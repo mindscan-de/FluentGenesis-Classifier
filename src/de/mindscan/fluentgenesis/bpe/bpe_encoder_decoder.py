@@ -53,11 +53,29 @@ class SimpleBPEEncoder(object):
     
     
     def encode(self, tokens):
-        pass
+        '''
+        Encode a token list / token stream into a list of indexes of an embedding 
+        '''
+        
+        encoded_tokens = []
+        
+        # instead of encoding a complete file / a method / a few lines of code on a character by character level, 
+        # we can encode each token individually - A token can either be encoded into one lexeme or multiple lexemes (most frequent pairings)
+        # 
+        for token in tokens:
+            
+            bpe_lexemes=[]
+            
+            # replace the combined lexemes by their indexes (at this point) 
+            encoded_tokens.extend( self.__encoder_table[bpe_lexeme] for bpe_lexeme in bpe_lexemes )
+        
+        # return indexes for the embeddings
+        return encoded_tokens
 
 
     def decode(self, tokens):
         pass
+
 
 def run_me(model_name):
     hparams = read_hparams(model_name)
@@ -65,7 +83,8 @@ def run_me(model_name):
     time_at_start = datetime.datetime.now()
     print( "time at start: " + str(time_at_start))
     
-    bpe_encoder = SimpleBPEEncoder();
+    # we must also make use of the vocabulary and the byte-pair occuences and pass that information to the encoder.
+    bpe_encoder = SimpleBPEEncoder([]);
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
