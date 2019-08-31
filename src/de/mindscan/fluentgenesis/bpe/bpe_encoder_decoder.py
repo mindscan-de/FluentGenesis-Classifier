@@ -34,6 +34,15 @@ def read_hparams(model):
     with open(os.path.join("Model",model,"hparams.json"), 'r') as paramfile_file:
         hparams = json.load(paramfile_file)
         return hparams
+
+
+def get_lexeme_pairs(word):
+    lexeme_pairs = {}
+    prev_lexeme = word[0]
+    for current_lexeme in word[1:]:
+        lexeme_pairs.append(prev_lexeme, current_lexeme)
+        prev_lexeme = current_lexeme
+    return lexeme_pairs
     
     
 class SimpleBPEEncoder(object):
@@ -63,14 +72,24 @@ class SimpleBPEEncoder(object):
     
     
     def __build_lexemes_for_token(self, token):
-        # we do not need to transform this token, if it has a unique encoding in the table. 
+        # we do not need to transform this token, if it has a unique encoding in the table already. 
         # we also do not need to put a complete token into the cache
         if token in self.__encoder_table:
             return [ token ]
         
         # In case of encoding a file, we expect to find multiple occurences of the same token - so caching the individual exemes is an option
         if self.__isInBPECache( token ):
-            return self.__getFromBPECache( token ) 
+            return self.__getFromBPECache( token )
+        
+        # build charwise representation and lexeme pairs (starts with simple chars and extends to lexemes).
+        word = tuple(token)
+        word_char_pairs = get_lexeme_pairs( word )
+        
+        if not word_char_pairs:
+            return [ token ]
+        
+        
+        # transform the word, until it is encodeable / embeddable
         
         return []
     
