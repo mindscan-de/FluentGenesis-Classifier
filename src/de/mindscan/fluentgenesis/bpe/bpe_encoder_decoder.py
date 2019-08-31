@@ -43,6 +43,32 @@ def get_lexeme_pairs(word):
         lexeme_pairs.append(prev_lexeme, current_lexeme)
         prev_lexeme = current_lexeme
     return lexeme_pairs
+
+def build_replacement_key_for(token, first_mptl, next_mptl, joined):
+    replacement_key=[]
+    
+    i=0
+    while i<len(token):
+        # copy all items to replacement_key before first_mptl & after
+        try:
+            j=token.index(first_mptl,i)
+            replacement_key.extend(token[i:j])
+            i=j
+        except:
+            replacement_key.extend(token[i:])
+            break;
+        
+        if token[i] == first_mptl and (i+1)<len(token) and token[i+1] == next_mptl:
+            # if next is next_mptl -> add joined to list
+            replacement_key.append(joined)
+            i+=2
+        else:
+            # if next is not next_mptl -> only the first_mptl 
+            replacement_key.append(token[i])
+            i+=1
+    
+    return tuple(replacement_key)
+
     
     
 class SimpleBPEEncoder(object):
@@ -69,6 +95,10 @@ class SimpleBPEEncoder(object):
     
     def __getFromBPECache(self, token):
         return self.__bpe_cache [ token ]
+    
+    
+    def _putInBPECache(self, text_token, encoded_value):
+        self.cache[text_token] = encoded_value
     
     
     def __build_lexemes_for_token(self, token):
@@ -117,8 +147,22 @@ class SimpleBPEEncoder(object):
             ## we do not think in bytes here but assign it an index, from a precomuted statistics
             
             ## replace all occurences
+            first_mp_bp, next_mp_bp = most_frequent_bpe_pair
+            word = build_replacement_key_for(token, first_mp_bp, next_mp_bp, "".join(most_frequent_bpe_pair))
+            
+            if len(word) == 1:
+                break
+            else:
+                ## We replace the byte pairs with the new byte pairs after replacing (joining) pairs.
+                ## and try next compression round continuing with
+                ## ----------------------------------------
+                ## "Find most frequent byte pair in buffer"
+                ## ----------------------------------------
+                word_char_pairs = get_lexeme_pairs( word )
+                
+        self.__putInBPECache(token, word)
         
-        return []
+        return word
     
     
     def encode(self, tokens):
