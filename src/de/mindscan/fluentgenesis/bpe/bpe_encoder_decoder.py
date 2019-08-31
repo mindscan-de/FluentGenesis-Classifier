@@ -35,6 +35,17 @@ def read_hparams(model):
         hparams = json.load(paramfile_file)
         return hparams
 
+def read_vocabulary(model, hparams):
+    with open(os.path.join("Model", model, hparams['token_filename']), 'r') as vocabulary_file:
+        vocabulary = json.load(vocabulary_file)
+        return vocabulary
+
+
+def read_bpe_statistics(model, hparams):
+    with open(os.path.join("Model", model, hparams['token_bpefile']), 'r') as bpe_statistics_file:
+        bpe_statistics = json.load(bpe_statistics_file)
+        return bpe_statistics
+
 
 def get_lexeme_pairs(word):
     lexeme_pairs = {}
@@ -69,14 +80,21 @@ def build_replacement_key_for(token, first_mptl, next_mptl, joined):
     
     return tuple(replacement_key)
 
-    
+def translate(data):
+    print(data)
+    for pair,_ in data.items():
+        print(pair)
+        # TODO: BUGGY -
+        unserialized = json.loads(pair)
+        return tuple(unserialized)
+    return ()
     
 class SimpleBPEEncoder(object):
     '''
     Byte pair encoder for source code / and of course texts (depends on the tokens/dictionary provided)
     '''
     
-    def __init__(self, encoder_token_table):
+    def __init__(self, encoder_token_table, encoder_bpe_statistics):
         '''
         Constructor
         '''
@@ -87,6 +105,9 @@ class SimpleBPEEncoder(object):
         self.__decoder_table = {value: key for key, value in encoder_token_table.items()}
         # Provide a cache to save reoccuring tokens.
         self.__bpe_cache = {}
+        #
+        self.__bpe_mp_lexemesIndex = { translate(data): index for (index, data) in encoder_bpe_statistics.items() }
+        
     
     
     def __isInBPECache(self, token):
@@ -134,7 +155,7 @@ class SimpleBPEEncoder(object):
             ## we can look up the statistics, 
             ## and pick the one which is most used, 
             ## by finding the lexeme pair with the mininal index. 
-            most_frequent_bpe_pair = ()
+            most_frequent_bpe_pair = min( word_char_pairs, key=( lambda pair: self.__bpe_mp_lexemesIndex.get( pair, float('inf') ) ) )
             
             # if we do not find an most probable byte pair / lexeme pair - there are no more combinings left and 
             # Compression is not more possible, so we must leave the outer loop.
@@ -197,14 +218,19 @@ class SimpleBPEEncoder(object):
         pass
 
 
+
+
 def run_me(model_name):
     hparams = read_hparams(model_name)
+    
+    model_vocabulary = read_vocabulary(model_name, hparams)
+    model_bpe_data = read_bpe_statistics(model_name, hparams)
     
     time_at_start = datetime.datetime.now()
     print( "time at start: " + str(time_at_start))
     
     # we must also make use of the vocabulary and the byte-pair occuences and pass that information to the encoder.
-    bpe_encoder = SimpleBPEEncoder([]);
+    bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data);
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
