@@ -55,6 +55,7 @@ def get_lexeme_pairs(word):
         prev_lexeme = current_lexeme
     return lexeme_pairs
 
+
 def build_replacement_key_for(token, first_mptl, next_mptl, joined):
     replacement_key=[]
     
@@ -80,6 +81,7 @@ def build_replacement_key_for(token, first_mptl, next_mptl, joined):
     
     return tuple(replacement_key)
 
+
 def translate(data):
     print(data)
     for pair,_ in data.items():
@@ -88,6 +90,7 @@ def translate(data):
         unserialized = json.loads(pair)
         return tuple(unserialized)
     return ()
+
     
 class SimpleBPEEncoder(object):
     '''
@@ -102,7 +105,7 @@ class SimpleBPEEncoder(object):
         # Source Code tokens into indexes table
         self.__encoder_table = encoder_token_table
         # Indexed to Source Code tokens - invert the encoder table (see Stackoverflow q:483666) 
-        self.__decoder_table = {value: key for key, value in encoder_token_table.items()}
+        self.__decoder_table = {value: key for (key, value) in encoder_token_table.items()}
         # Provide a cache to save reoccuring tokens.
         self.__bpe_cache = {}
         #
@@ -230,7 +233,7 @@ def run_me(model_name):
     print( "time at start: " + str(time_at_start))
     
     # we must also make use of the vocabulary and the byte-pair occuences and pass that information to the encoder.
-    bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data);
+    bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
