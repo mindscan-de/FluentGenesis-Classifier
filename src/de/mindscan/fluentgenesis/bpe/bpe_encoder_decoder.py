@@ -50,6 +50,29 @@ class SimpleBPEEncoder(object):
         self.__encoder_table = encoder_token_table
         # Indexed to Source Code tokens - invert the encoder table (see Stackoverflow q:483666) 
         self.__decoder_table = {value: key for key, value in encoder_token_table.items()}
+        # Provide a cache to save reoccuring tokens.
+        self.__bpe_cache = {}
+    
+    
+    def __isInBPECache(self, token):
+        return token in self.__bpe_cache
+    
+    
+    def __getFromBPECache(self, token):
+        return self.__bpe_cache [ token ]
+    
+    
+    def __build_lexemes_for_token(self, token):
+        # we do not need to transform this token, if it has a unique encoding in the table. 
+        # we also do not need to put a complete token into the cache
+        if token in self.__encoder_table:
+            return [ token ]
+        
+        # In case of encoding a file, we expect to find multiple occurences of the same token - so caching the individual exemes is an option
+        if self.__isInBPECache( token ):
+            return self.__getFromBPECache( token ) 
+        
+        return []
     
     
     def encode(self, tokens):
@@ -63,10 +86,17 @@ class SimpleBPEEncoder(object):
         # we can encode each token individually - A token can either be encoded into one lexeme or multiple lexemes (most frequent pairings)
         # 
         for token in tokens:
+            # a token needs to be transformed into lexemes, which can be encoded into an embedding index. 
+            bpe_lexemes=self.__build_lexemes_for_token( token )
             
-            bpe_lexemes=[]
+            ## see also: "Random Access Data Compression" by Philip Gage, C/C++ User Journal, September 1997, Page 23--30
+            ##
+            ## Page 23 reads:
             
-            # replace the combined lexemes by their indexes (at this point) 
+            ## >> "Replace all such pairs with this unused byte"
+            ## let's think of "unused byte" with an index here 
+            
+            # replace the combined lexemes by their indexes 
             encoded_tokens.extend( self.__encoder_table[bpe_lexeme] for bpe_lexeme in bpe_lexemes )
         
         # return indexes for the embeddings
