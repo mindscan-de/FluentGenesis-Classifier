@@ -48,10 +48,10 @@ def read_bpe_statistics(model, hparams):
 
 
 def get_lexeme_pairs(word):
-    lexeme_pairs = {}
+    lexeme_pairs = set()
     prev_lexeme = word[0]
     for current_lexeme in word[1:]:
-        lexeme_pairs.append(prev_lexeme, current_lexeme)
+        lexeme_pairs.add((prev_lexeme, current_lexeme))
         prev_lexeme = current_lexeme
     return lexeme_pairs
 
@@ -81,14 +81,19 @@ def build_replacement_key_for(token, first_mptl, next_mptl, joined):
     
     return tuple(replacement_key)
 
+import ast
 
 def translate(data):
-    print(data)
+    print(str(data).encode('utf-8'))
     for pair,_ in data.items():
-        print(pair)
+        print(str(pair).encode('utf-8'))
         # TODO: BUGGY -
-        unserialized = json.loads(pair)
-        return tuple(unserialized)
+        try:
+            unserialized = ast.literal_eval(pair)
+            return tuple(unserialized)
+        except:
+            print("cant do that...")
+            return();
     return ()
 
     
@@ -109,7 +114,7 @@ class SimpleBPEEncoder(object):
         # Provide a cache to save reoccuring tokens.
         self.__bpe_cache = {}
         #
-        self.__bpe_mp_lexemesIndex = { translate(data): index for (index, data) in encoder_bpe_statistics.items() }
+        self.__bpe_mp_lexemesIndex = { translate(data): int(index) for (index, data) in encoder_bpe_statistics.items() }
         
     
     
@@ -162,7 +167,7 @@ class SimpleBPEEncoder(object):
             
             # if we do not find an most probable byte pair / lexeme pair - there are no more combinings left and 
             # Compression is not more possible, so we must leave the outer loop.
-            if most_frequent_bpe_pair not in self.__bpe_pairs:
+            if most_frequent_bpe_pair not in self.__bpe_mp_lexemesIndex:
                 break;
             
             ## ---------------------------------------------------
@@ -234,6 +239,8 @@ def run_me(model_name):
     
     # we must also make use of the vocabulary and the byte-pair occuences and pass that information to the encoder.
     bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
+    print(bpe_encoder.encode(['import', 'java', ';']))
+    print(bpe_encoder.encode(['import', 'datapoint1', ';']))
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
