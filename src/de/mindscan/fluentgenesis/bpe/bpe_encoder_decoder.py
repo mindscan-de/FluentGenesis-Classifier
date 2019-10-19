@@ -222,6 +222,7 @@ class SimpleBPEEncoder(object):
         return encoded_tokens
 
 
+
     def decode(self, tokens):
         pass
 
@@ -240,7 +241,7 @@ def run_me(model_name):
     # we must also make use of the vocabulary and the byte-pair occuences and pass that information to the encoder.
     bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     print(bpe_encoder.encode(['import', 'java', ';']))
-    print(bpe_encoder.encode(['import', 'datapoint1', ';']))
+    print(bpe_encoder.encode(['import', 'com','.','github','.','datapoint1', ';']))
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
