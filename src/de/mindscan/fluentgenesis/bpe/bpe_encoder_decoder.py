@@ -248,9 +248,11 @@ def run_me(model_name):
     
     # we must also make use of the vocabulary and the byte-pair occuences and pass that information to the encoder.
     bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
+    
     importJava = bpe_encoder.encode(['import', 'java', ';'])
-    print(importJava)
     importComGitubDatapoint = bpe_encoder.encode(['import', 'com','.','github','.','datapoint1', ';'])
+
+    print(importJava)
     print(importComGitubDatapoint)
     
     print(bpe_encoder.decode(importJava))
