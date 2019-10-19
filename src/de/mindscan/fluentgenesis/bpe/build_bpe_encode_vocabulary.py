@@ -34,6 +34,8 @@ import regex as re
 from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
 
+from de.mindscan.fluentgenesis.bpe.bpe_global_statistics import TokenStatistics
+
 def get_lexeme_pairs(word):
     lexeme_pairs = []
     prev_lexeme = word[0]
@@ -66,41 +68,6 @@ def calculateTokenOccurence( tokens ):
             result[token_value]=0
         result[token_value]+=1
     return result
-
-global_token_statistics = {}
-
-def initGlobalStatistics():
-    global global_token_statistics
-    global_token_statistics = {}
-
-def updateGlobalStatistics( token_map ):
-    global global_token_statistics
-    for key, count in token_map.items():
-        if key not in global_token_statistics:
-            global_token_statistics[key] = count
-        else:
-            global_token_statistics[key] += count
-    pass
-
-def getGlobalStatistics():
-    global global_token_statistics
-    return global_token_statistics
-
-
-def save_global_statistics(hparams, model_name, _theGlobalTokenMap):
-    with open(os.path.join("Model", model_name, hparams['global_wordlist']), 'w') as global_count_file:
-        json.dump(sort_by_lexeme_value(_theGlobalTokenMap), global_count_file)
-
-
-def load_global_statistics( hparams, model_name):
-    global global_token_statistics
-    
-    with open(os.path.join("Model", model_name, hparams['global_wordlist']),'r') as wordfile:
-        global_token_statistics = json.load(wordfile)
-
-    return global_token_statistics
-
-    
 
 # Step 2 - Build compression dictionary / compress dictionary save and emit new codes and stats
 # -------------------------------------
@@ -494,8 +461,8 @@ def run_me(model_name):
     time_after_aggregating_statistics = None
     time_after_splitting_leastFrequentWords = None
 
-    initGlobalStatistics()
-    
+    statistics = TokenStatistics();
+
     if os.path.isfile(os.path.join("Model", model_name, hparams['global_wordlist'])) is False:
         
         filenames = walkFiles(hparams['path'])
@@ -513,31 +480,31 @@ def run_me(model_name):
                 aggregated_tokenoccurence_for_file = calculateTokenOccurence(tokens_for_file)
                 
                 # update globally aggregated tokens
-                updateGlobalStatistics(aggregated_tokenoccurence_for_file)
+                statistics.update(aggregated_tokenoccurence_for_file)
             except:
                 try:
                     print ("Not considered this one..." + filename)
                 except:
                     print ("filename is strange...")
         
-        _theGlobalTokenMap=getGlobalStatistics()
+        _theGlobalTokenMap=statistics.get()
         
         time_after_aggregating_statistics = datetime.datetime.now()
         print( "time after aggregating words: " + str(time_after_aggregating_statistics))
     
         newDict = split_rare_dictionary_items(hparams, _theGlobalTokenMap)
-        updateGlobalStatistics(newDict)
+        statistics.update(newDict)
     
-        _theGlobalTokenMap=getGlobalStatistics()
+        _theGlobalTokenMap=statistics.get()
             
         time_after_splitting_leastFrequentWords = datetime.datetime.now()
         print( "time after splitting least frequent words: " + str(time_after_splitting_leastFrequentWords))
         
         print("number of items in new dictionary: " + str(len(newDict)))
     
-        save_global_statistics(hparams, model_name, _theGlobalTokenMap)
+        statistics.save(os.path.join("Model", model_name, hparams['global_wordlist']), _theGlobalTokenMap)
     else:
-        _theGlobalTokenMap = load_global_statistics(hparams, model_name)
+        _theGlobalTokenMap = statistics.load(os.path.join("Model", model_name, hparams['global_wordlist']))
     
     print("number of items merged dictionary: " + str(len(_theGlobalTokenMap)))
     
@@ -546,7 +513,7 @@ def run_me(model_name):
     time_after_buildingDict = datetime.datetime.now()
     print( "time after building dictionary: " + str(time_after_buildingDict))
 
-    #save_bpe_encodings_and_tokens(hparams, model_name, get_emitted_bpe_list(), emitted_tokens)
+    save_bpe_encodings_and_tokens(hparams, model_name, get_emitted_bpe_list(), emitted_tokens)
     
     print( "===[ The End ]===")
     print( "time at start: " + str(time_at_start))
@@ -563,6 +530,6 @@ def run_me(model_name):
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
-    model_name = "50K-full"
+    model_name = "1K-datapoint"
     
     run_me(model_name)
