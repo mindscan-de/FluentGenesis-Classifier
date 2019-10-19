@@ -367,33 +367,6 @@ def find_word_containing( pair, current_token_map ):
     pass
 
 
-# too expensive and not very useful...
-# pruning does not help, it is more of an indicator, where to split a token, 
-# because these items/tokencombinations are the things, which make a token (realy) unique and distinguishable.
-# it was an idea, to get rid of recalculating the statistics for those rare items over and over again
-def prune_dictionary(current_token_frequencies, current_token_map):
-    lowcount_lexemes_first = sort_by_lexeme_value(current_token_frequencies)
-    pruned_count = 0;
-    may_be_pruned = 0;
-    for pair, count in lowcount_lexemes_first.items():
-        if count == 1:
-            may_be_pruned +=1
-            word = "".join(pair);
-            if word in current_token_map:
-                current_token_map.pop(word)
-                pruned_count += 1
-            else:
-                # find word, where this element is inside, remove the intire word from the dictionary? 
-                word = find_word_containing(pair, current_token_map)
-                if word is not None and len(word) < 4:
-                    # but word will not count as much any more, so why trying to aquire statistics from this particular word, if count == 1
-                    current_token_map.pop(word)
-                    pruned_count += 1
-                pass
-    print ("pruned "+str(pruned_count)+" out of "+str(may_be_pruned)+" candidate items from dictionary")
-    pass
-
-
 def build_dictionary(hparams, token_map):
     # emit all one element tokens
     # create a copy of the  
@@ -426,10 +399,6 @@ def build_dictionary(hparams, token_map):
         if current_token_frequencies[mp_token_pair] < 2:
             # we are ready, we do not have any duplicates
             break
-        
-        # Pruning the dictionary - seems not to be effective
-        #if i%50 == 49:
-            #prune_dictionary(current_token_frequencies, current_token_map)
         
         # emit first_token_pair
         emit_most_probable_lexeme(mp_token_pair, current_token_frequencies[mp_token_pair])
