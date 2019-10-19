@@ -34,7 +34,7 @@ import regex as re
 from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
 
-from de.mindscan.fluentgenesis.bpe.bpe_global_statistics import TokenStatistics
+from de.mindscan.fluentgenesis.bpe.token_statistics import TokenStatistics
 
 def get_lexeme_pairs(word):
     lexeme_pairs = []
