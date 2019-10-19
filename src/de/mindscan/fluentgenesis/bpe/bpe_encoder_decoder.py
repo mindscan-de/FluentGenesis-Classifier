@@ -86,7 +86,7 @@ import ast
 def translate(data):
     print(str(data).encode('utf-8'))
     for pair,_ in data.items():
-        print(str(pair).encode('utf-8'))
+        # print(str(pair).encode('utf-8'))
         # TODO: BUGGY -
         try:
             unserialized = ast.literal_eval(pair)
@@ -224,7 +224,15 @@ class SimpleBPEEncoder(object):
 
 
     def decode(self, tokens):
-        pass
+        '''
+        Decode a list of tokens of indexes of an embedding into a list of strings 
+        '''
+        decoded_tokens = []
+        
+        for token in tokens:
+            decoded_tokens.append(self.__decoder_table[token])
+        
+        return decoded_tokens
 
 
 
@@ -240,8 +248,13 @@ def run_me(model_name):
     
     # we must also make use of the vocabulary and the byte-pair occuences and pass that information to the encoder.
     bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
-    print(bpe_encoder.encode(['import', 'java', ';']))
-    print(bpe_encoder.encode(['import', 'com','.','github','.','datapoint1', ';']))
+    importJava = bpe_encoder.encode(['import', 'java', ';'])
+    print(importJava)
+    importComGitubDatapoint = bpe_encoder.encode(['import', 'com','.','github','.','datapoint1', ';'])
+    print(importComGitubDatapoint)
+    
+    print(bpe_encoder.decode(importJava))
+    print(bpe_encoder.decode(importComGitubDatapoint))
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
