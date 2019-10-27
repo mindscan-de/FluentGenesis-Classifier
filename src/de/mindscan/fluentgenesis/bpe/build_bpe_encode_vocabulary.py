@@ -35,6 +35,7 @@ from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
 
 from de.mindscan.fluentgenesis.bpe.token_statistics import TokenStatistics
+from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 
 def get_lexeme_pairs(word):
     lexeme_pairs = []
@@ -397,15 +398,6 @@ def walkFiles(path):
     return filenames
 
 
-def read_hparams(model):
-    with open(os.path.join("Model",model,"hparams.json"), 'r') as paramfile_file:
-        hparams = json.load(paramfile_file)
-        return hparams
-
-
-def save_hparams(model, params):
-    with open(os.path.join("Model",model,"hparams.json"), 'w') as paramfile_file:
-        json.dump(params, paramfile_file)
 
 
 # TODO: regex-split on heavy strings, if split, then it will produce more convincing words and tokens.
@@ -452,8 +444,9 @@ def save_bpe_encodings_and_tokens(hparams, model_name, _bpe_list, _emitted_token
         json.dump(sort_by_lexeme_value(_emitted_tokens), json_file)
 
 
-def run_me(model_name):
-    hparams = read_hparams(model_name)
+def run_me(model):
+    model_name = model.get_model_name()
+    hparams = model.read_hparams()
     
     time_at_start = datetime.datetime.now()
     print( "time at start: " + str(time_at_start))
@@ -463,7 +456,7 @@ def run_me(model_name):
 
     statistics = TokenStatistics();
 
-    if os.path.isfile(os.path.join("Model", model_name, hparams['global_wordlist'])) is False:
+    if os.path.isfile(model.get_global_tokenstatistics_path()) is False:
         
         filenames = walkFiles(hparams['path'])
         time_after_walkingfiles = datetime.datetime.now()
@@ -502,9 +495,9 @@ def run_me(model_name):
         
         print("number of items in new dictionary: " + str(len(newDict)))
     
-        statistics.save(os.path.join("Model", model_name, hparams['global_wordlist']), _theGlobalTokenMap)
+        statistics.save(model.get_global_tokenstatistics_path(), _theGlobalTokenMap)
     else:
-        _theGlobalTokenMap = statistics.load(os.path.join("Model", model_name, hparams['global_wordlist']))
+        _theGlobalTokenMap = statistics.load(model.get_global_tokenstatistics_path())
     
     print("number of items merged dictionary: " + str(len(_theGlobalTokenMap)))
     
@@ -530,6 +523,6 @@ def run_me(model_name):
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
-    model_name = "1K-datapoint"
+    model = BPEModel("1K-datapoint") 
     
-    run_me(model_name)
+    run_me(model)
