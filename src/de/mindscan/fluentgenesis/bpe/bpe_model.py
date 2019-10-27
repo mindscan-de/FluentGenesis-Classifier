@@ -43,6 +43,7 @@ class BPEModel(object):
         self.__model_directory = "Model"
         self.__model_name = modelname
         self.__hparams = {}
+        self.read_hparams()
         
     def get_model_name(self):
         return self.__model_name
@@ -63,11 +64,20 @@ class BPEModel(object):
     def save_bpe_pairs(self, bpe_pairs_list):
         with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_bpefile']), 'w') as bpe_json_file:
             json.dump(bpe_pairs_list, bpe_json_file)
+            
+    def load_bpe_pairs(self):
+        with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_bpefile']), 'r') as bpe_statistics_file:
+            bpe_statistics = json.load(bpe_statistics_file)
+            return bpe_statistics
 
     def save_tokens(self, bpe_tokens):
         with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_filename']), 'w') as json_file:
             json.dump(self.__sort_by_lexeme_value(bpe_tokens), json_file)
         
+    def load_tokens(self):
+        with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_filename']), 'r') as vocabulary_file:
+            vocabulary = json.load(vocabulary_file)
+            return vocabulary
     
     def get_global_tokenstatistics_path(self):
         return os.path.join(self.__model_directory, self.__model_name, self.__hparams['global_wordlist'])

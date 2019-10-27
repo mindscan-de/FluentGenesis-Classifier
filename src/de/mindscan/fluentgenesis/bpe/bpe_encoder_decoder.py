@@ -26,26 +26,9 @@ SOFTWARE.
 @author: Maxim Gansert, Mindscan
 '''
 
-import os
-import json
 import datetime
 
-def read_hparams(model):
-    with open(os.path.join("Model",model,"hparams.json"), 'r') as paramfile_file:
-        hparams = json.load(paramfile_file)
-        return hparams
-
-def read_vocabulary(model, hparams):
-    with open(os.path.join("Model", model, hparams['token_filename']), 'r') as vocabulary_file:
-        vocabulary = json.load(vocabulary_file)
-        return vocabulary
-
-
-def read_bpe_statistics(model, hparams):
-    with open(os.path.join("Model", model, hparams['token_bpefile']), 'r') as bpe_statistics_file:
-        bpe_statistics = json.load(bpe_statistics_file)
-        return bpe_statistics
-
+from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 
 def get_lexeme_pairs(word):
     lexeme_pairs = set()
@@ -235,13 +218,9 @@ class SimpleBPEEncoder(object):
         return decoded_tokens
 
 
-
-
-def run_me(model_name):
-    hparams = read_hparams(model_name)
-    
-    model_vocabulary = read_vocabulary(model_name, hparams)
-    model_bpe_data = read_bpe_statistics(model_name, hparams)
+def run_me(model):
+    model_vocabulary = model.load_tokens()
+    model_bpe_data = model.load_bpe_pairs()
     
     time_at_start = datetime.datetime.now()
     print( "time at start: " + str(time_at_start))
@@ -260,7 +239,7 @@ def run_me(model_name):
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
-    model_name = "16K-excerpt"
-    
-    run_me(model_name)
+    model = BPEModel("16K-excerpt")
+
+    run_me(model)
 
