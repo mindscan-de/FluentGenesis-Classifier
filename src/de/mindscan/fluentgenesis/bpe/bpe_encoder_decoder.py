@@ -29,7 +29,9 @@ SOFTWARE.
 import datetime
 
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
+from functools import lru_cache
 
+@lru_cache(maxsize=65536)
 def get_lexeme_pairs(word):
     lexeme_pairs = set()
     prev_lexeme = word[0]
