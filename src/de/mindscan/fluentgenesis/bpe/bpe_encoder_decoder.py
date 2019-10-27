@@ -240,6 +240,7 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     model = BPEModel("16K-excerpt")
+    model.load_hparams()
 
     run_me(model)
 

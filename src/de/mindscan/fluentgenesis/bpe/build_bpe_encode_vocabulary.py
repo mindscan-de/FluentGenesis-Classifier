@@ -430,7 +430,7 @@ def split_rare_dictionary_items(hparams, _theGlobalTokenMap):
 
 
 def run_me(model):
-    hparams = model.read_hparams()
+    hparams = model.load_hparams()
     
     time_at_start = datetime.datetime.now()
     print( "time at start: " + str(time_at_start))
@@ -509,5 +509,6 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     model = BPEModel("1K-datapoint") 
+    model.load_hparams()
     
     run_me(model)

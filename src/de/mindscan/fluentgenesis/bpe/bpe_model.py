@@ -43,13 +43,25 @@ class BPEModel(object):
         self.__model_directory = "Model"
         self.__model_name = modelname
         self.__hparams = {}
-        self.read_hparams()
         
     def get_model_name(self):
         return self.__model_name
     
-    def read_hparams(self):
-        with open(os.path.join(self.__model_directory,self.__model_name,"hparams.json"), 'r') as paramfile_file:
+    def get_hparam_path(self):
+        return os.path.join(self.__model_directory,self.__model_name,"hparams.json")
+    
+    def get_bpe_pairs_path(self):
+        return os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_bpefile'])
+    
+    def get_token_path(self):
+        return os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_filename'])
+
+    def get_global_tokenstatistics_path(self):
+        return os.path.join(self.__model_directory, self.__model_name, self.__hparams['global_wordlist'])
+    
+    
+    def load_hparams(self):
+        with open(self.get_hparam_path(), 'r') as paramfile_file:
             self.__hparams = json.load(paramfile_file)
             
         return self.__hparams
@@ -58,29 +70,26 @@ class BPEModel(object):
         if hparams is None:
             hparams = self.__hparams
         
-        with open(os.path.join(self.__model_directory, self.__model_name,"hparams.json"), 'w') as paramfile_file:
+        with open(self.get_hparam_path(), 'w') as paramfile_file:
             json.dump(hparams, paramfile_file)
-            
+    
     def save_bpe_pairs(self, bpe_pairs_list):
-        with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_bpefile']), 'w') as bpe_json_file:
+        with open(self.get_bpe_pairs_path(), 'w') as bpe_json_file:
             json.dump(bpe_pairs_list, bpe_json_file)
             
     def load_bpe_pairs(self):
-        with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_bpefile']), 'r') as bpe_statistics_file:
+        with open(self.get_bpe_pairs_path(), 'r') as bpe_statistics_file:
             bpe_statistics = json.load(bpe_statistics_file)
             return bpe_statistics
-
+    
     def save_tokens(self, bpe_tokens):
-        with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_filename']), 'w') as json_file:
+        with open(self.get_token_path(), 'w') as json_file:
             json.dump(self.__sort_by_lexeme_value(bpe_tokens), json_file)
         
     def load_tokens(self):
-        with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_filename']), 'r') as vocabulary_file:
+        with open(self.get_token_path(), 'r') as vocabulary_file:
             vocabulary = json.load(vocabulary_file)
             return vocabulary
-    
-    def get_global_tokenstatistics_path(self):
-        return os.path.join(self.__model_directory, self.__model_name, self.__hparams['global_wordlist'])
     
     def __sort_by_lexeme_value(self, token_map):
         return OrderedDict(sorted(token_map.items(), key=lambda item:item[1] ))
