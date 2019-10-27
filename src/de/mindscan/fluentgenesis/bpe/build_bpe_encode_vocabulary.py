@@ -329,6 +329,9 @@ def find_word_containing( pair, current_token_map ):
                 i+=1
     pass
 
+def emit_obvious_ascii_tokens(token_map):
+    for char in range(32, 255):
+        emit_token(chr(char))
 
 def build_dictionary(hparams, token_map):
     # emit all one element tokens
@@ -338,6 +341,7 @@ def build_dictionary(hparams, token_map):
     
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     
+    emit_obvious_ascii_tokens(current_token_map)
     emit_complete_tokens(current_token_map)
     current_token_map = remove_completed_tokens(current_token_map)
     # print (str(current_token_map).encode("utf-8"))
@@ -508,7 +512,8 @@ def run_me(model):
 
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
-    model = BPEModel("1K-datapoint") 
+    # model = BPEModel("1K-datapoint") 
+    model = BPEModel("10K-excerpt")
     model.load_hparams()
     
     run_me(model)
