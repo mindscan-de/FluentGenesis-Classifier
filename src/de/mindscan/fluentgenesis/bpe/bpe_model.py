@@ -29,6 +29,8 @@ SOFTWARE.
 import os
 import json
 
+from _collections import OrderedDict
+
 class BPEModel(object):
     '''
     classdocs
@@ -57,9 +59,18 @@ class BPEModel(object):
         
         with open(os.path.join(self.__model_directory, self.__model_name,"hparams.json"), 'w') as paramfile_file:
             json.dump(hparams, paramfile_file)
-    
+            
+    def save_bpe_pairs(self, bpe_pairs_list):
+        with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_bpefile']), 'w') as bpe_json_file:
+            json.dump(bpe_pairs_list, bpe_json_file)
+
+    def save_tokens(self, bpe_tokens):
+        with open(os.path.join(self.__model_directory, self.__model_name, self.__hparams['token_filename']), 'w') as json_file:
+            json.dump(self.__sort_by_lexeme_value(bpe_tokens), json_file)
+        
     
     def get_global_tokenstatistics_path(self):
         return os.path.join(self.__model_directory, self.__model_name, self.__hparams['global_wordlist'])
     
-    
+    def __sort_by_lexeme_value(self, token_map):
+        return OrderedDict(sorted(token_map.items(), key=lambda item:item[1] ))

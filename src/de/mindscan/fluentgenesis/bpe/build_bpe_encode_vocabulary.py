@@ -28,7 +28,6 @@ SOFTWARE.
 
 import os
 import datetime
-import json
 import regex as re
 
 from com.github.c2nes.javalang import tokenizer
@@ -87,10 +86,6 @@ def calculateTokenOccurence( tokens ):
 
 def sort_by_lexeme_occurence(token_map):
     return OrderedDict(sorted(token_map.items(), key=lambda item:item[1], reverse=True ))
-
-def sort_by_lexeme_value(token_map):
-    return OrderedDict(sorted(token_map.items(), key=lambda item:item[1] ))
-
 
 def get_occurence_frequency2(sorted_token_list):
     ngram_frequency = {}
@@ -434,18 +429,7 @@ def split_rare_dictionary_items(hparams, _theGlobalTokenMap):
     return splitDictionaryItems
 
 
-def save_bpe_encodings_and_tokens(hparams, model_name, _bpe_list, _emitted_tokens):
-    # save the bytepair encodings
-    with open(os.path.join("Model", model_name, hparams['token_bpefile']), 'w') as bpe_json_file:
-        json.dump(_bpe_list, bpe_json_file)
-        
-    # save tokens
-    with open(os.path.join("Model", model_name, hparams['token_filename']), 'w') as json_file:
-        json.dump(sort_by_lexeme_value(_emitted_tokens), json_file)
-
-
 def run_me(model):
-    model_name = model.get_model_name()
     hparams = model.read_hparams()
     
     time_at_start = datetime.datetime.now()
@@ -506,7 +490,8 @@ def run_me(model):
     time_after_buildingDict = datetime.datetime.now()
     print( "time after building dictionary: " + str(time_after_buildingDict))
 
-    save_bpe_encodings_and_tokens(hparams, model_name, get_emitted_bpe_list(), emitted_tokens)
+    model.save_bpe_pairs(get_emitted_bpe_list())
+    model.save_tokens(emitted_tokens)
     
     print( "===[ The End ]===")
     print( "time at start: " + str(time_at_start))
