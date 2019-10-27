@@ -340,6 +340,7 @@ cjk_ranges = [
         ( 0x7800,  0x8CFF),
         ( 0x8D00,  0x9FCC),
         ( 0x3400,  0x4DB5),
+        ( 0xac00,  0xD7AF), # hangul syllabies, modern korean
         (0x20000, 0x215FF),
         (0x21600, 0x230FF),
         (0x23100, 0x245FF),
@@ -379,6 +380,19 @@ def remove_tokens_containing_asian_chars(current_token_map):
             
     return current_token_map
 
+def remove_rare_tokens(current_token_map):
+    keys_to_remove = []
+    for key, count in current_token_map.items():
+        if count < 3:
+            keys_to_remove.append(key)
+             
+    if len(keys_to_remove) >0:
+        for key in keys_to_remove:
+            del current_token_map[key]
+            
+    return current_token_map
+    
+
 def build_dictionary(hparams, token_map):
     current_token_map = rebuild_token_map(token_map)
     #print (str(current_token_map).encode("utf-8"))
@@ -388,6 +402,10 @@ def build_dictionary(hparams, token_map):
     # remove asian tokens, because they cause the tokens to inflate too much, and I do not have enough training data for these "rare" tokens
     # the asian characters alone will clog up the entire available dictionary
     current_token_map = remove_tokens_containing_asian_chars(current_token_map)
+    
+    print("the whole dictionary has now length : " + str(len(current_token_map)))
+    print("removing rare tokens")
+    current_token_map = remove_rare_tokens(current_token_map)
     
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     print("emitting ascii and complete tokens")
