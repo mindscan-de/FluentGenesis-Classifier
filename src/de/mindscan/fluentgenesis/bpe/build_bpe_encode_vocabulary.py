@@ -403,9 +403,9 @@ def build_dictionary(hparams, token_map):
     # the asian characters alone will clog up the entire available dictionary
     current_token_map = remove_tokens_containing_asian_chars(current_token_map)
     
-    print("the whole dictionary has now length : " + str(len(current_token_map)))
-    print("removing rare tokens")
-    current_token_map = remove_rare_tokens(current_token_map)
+    #     print("the whole dictionary has now length : " + str(len(current_token_map)))
+    #     print("removing rare tokens")
+    #     current_token_map = remove_rare_tokens(current_token_map)
     
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     print("emitting ascii and complete tokens")
