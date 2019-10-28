@@ -383,7 +383,7 @@ def remove_tokens_containing_asian_chars(current_token_map):
 def remove_rare_tokens(current_token_map):
     keys_to_remove = []
     for key, count in current_token_map.items():
-        if count < 2:
+        if count < 3:
             keys_to_remove.append(key)
              
     if len(keys_to_remove) >0:
