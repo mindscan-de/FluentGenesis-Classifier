@@ -383,7 +383,7 @@ def remove_tokens_containing_asian_chars(current_token_map):
 def remove_rare_tokens(current_token_map):
     keys_to_remove = []
     for key, count in current_token_map.items():
-        if count < 3:
+        if count < 2:
             keys_to_remove.append(key)
              
     if len(keys_to_remove) >0:
@@ -403,9 +403,9 @@ def build_dictionary(hparams, token_map):
     # the asian characters alone will clog up the entire available dictionary
     current_token_map = remove_tokens_containing_asian_chars(current_token_map)
     
-    #     print("the whole dictionary has now length : " + str(len(current_token_map)))
-    #     print("removing rare tokens")
-    #     current_token_map = remove_rare_tokens(current_token_map)
+    print("the whole dictionary has now length : " + str(len(current_token_map)))
+    print("removing rare tokens")
+    current_token_map = remove_rare_tokens(current_token_map)
     
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     print("emitting ascii and complete tokens")
