@@ -676,6 +676,10 @@ def run_me(model):
         print( "time after walking files: " + str(time_after_walkingfiles))
         
         for filename in filenames:
+            # skip non java files
+            if not filename.endswith(".java"):
+                continue
+            
             try:
                 print("tokenizing :'"+filename+"'")
                 
