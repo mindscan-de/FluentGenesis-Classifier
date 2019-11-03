@@ -65,33 +65,32 @@ def runTokenizerForFile(filename):
 
 def save_corpus_bpe_content(bpe_content, destination_filename):
     with open(destination_filename, 'w') as bpe_content_file:
-        print ("dumping into "+destination_filename)
+        # print ("dumping into "+destination_filename)
         json.dump(bpe_content, bpe_content_file, indent=None, sort_keys=True)
 
 
 def build_bpe_encoded_corpus_file(source_filename, bpe_encoder, model):
-    print("encoding: " + source_filename)
+    # print("encoding: " + source_filename)
     bpe_content = {}
     bpe_content['filename'] = source_filename
     bpe_content['bpeModel'] = model.get_model_name()
     
-    #try:
-
-    tokenlist = runTokenizerForFile(source_filename)
-    java_tokens = [x.value for x in tokenlist]
-    # TODO: later use each line... and encode it for itself
+    try:
+        tokenlist = runTokenizerForFile(source_filename)
+        java_tokens = [x.value for x in tokenlist]
+        # TODO: later use each line... and encode it for itself
+        
+        # is this usefull to write the token into the corpus right now? 
+        # bpe_content['tokens'] = java_tokens
+        
+        bpe_data = bpe_encoder.encode( java_tokens )
+        bpe_content['bpeTokenData'] = bpe_data
+        
+        destination_filename = source_filename + ".json";
+        save_corpus_bpe_content( bpe_content, destination_filename )
     
-    # is this usefull to write the token into the corpus right now? 
-    # bpe_content['tokens'] = java_tokens
-    
-    bpe_data = bpe_encoder.encode( java_tokens )
-    bpe_content['bpeTokenData'] = bpe_data
-    
-    destination_filename = source_filename + ".json";
-    save_corpus_bpe_content( bpe_content, destination_filename )
-    
-    #except:
-    #    print("could not encode: "+source_filename) 
+    except:
+        print("could not encode: "+source_filename) 
     
     pass
 
@@ -122,7 +121,7 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     # model = BPEModel("1K-datapoint") 
-    model = BPEModel("1K-datapoint")
+    model = BPEModel("10K-excerpt")
     model.load_hparams()
     
     run_me(model)
