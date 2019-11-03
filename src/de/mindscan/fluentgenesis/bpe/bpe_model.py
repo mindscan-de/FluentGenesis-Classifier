@@ -71,7 +71,7 @@ class BPEModel(object):
             hparams = self.__hparams
         
         with open(self.get_hparam_path(), 'w') as paramfile_file:
-            json.dump(hparams, paramfile_file)
+            json.dump(hparams, paramfile_file, indent=2, sort_keys=True)
     
     def save_bpe_pairs(self, bpe_pairs_list):
         with open(self.get_bpe_pairs_path(), 'w') as bpe_json_file:
@@ -84,7 +84,7 @@ class BPEModel(object):
     
     def save_tokens(self, bpe_tokens):
         with open(self.get_token_path(), 'w') as json_file:
-            json.dump(self.__sort_by_lexeme_value(bpe_tokens), json_file)
+            json.dump(self.__sort_by_lexeme_value(bpe_tokens), json_file, indent=2, sort_keys=True)
         
     def load_tokens(self):
         with open(self.get_token_path(), 'r') as vocabulary_file:
