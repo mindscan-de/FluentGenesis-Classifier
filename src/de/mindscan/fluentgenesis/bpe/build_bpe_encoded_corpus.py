@@ -28,12 +28,14 @@ SOFTWARE.
 
 import os
 import datetime
+import json
 
-from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
+from com.github.c2nes.javalang import tokenizer
 
-# walk the corpus, load each file
-# tokenize and save result into json-file
 # all the files needs to be recalculated if encoding table is renewed
+from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
+from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
+
 
 # the json file can later be used to calculate the embeddings and also 
 # be the source of truth for BERT and other training methods, in the 
@@ -44,25 +46,62 @@ def walkFiles(path):
     filenames = []
     for root, _, files in os.walk(path):
         for file_ in files:
+            if not file_.endswith(".java"):
+                continue
             filenames.append(os.path.realpath(os.path.join(root, file_)))
     return filenames
 
 
+def runTokenizerForFile(filename):
+    with open(filename,"rb") as current_source_file:
+        all_lines_as_string = map(lambda line: line.decode('utf-8'), current_source_file.readlines()[0:])
+        current_source_code = "".join(all_lines_as_string) 
+        return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
+
 
 # bpe encoded file:
-# * filename: the filename it refers to
-# * usedBPEModel: name of the bpe-Model used
-# * tokens: tokenized source code, for each line there is an array of tokens
 # * bpe: for each line there is an array of integers encoding these tokens
 
 
-def build_bpe_encoded_corpus_file(filename):
-    print(filename)
+def save_corpus_bpe_content(bpe_content, destination_filename):
+    with open(destination_filename, 'w') as bpe_content_file:
+        print ("dumping into "+destination_filename)
+        json.dump(bpe_content, bpe_content_file, indent=None, sort_keys=True)
+
+
+def build_bpe_encoded_corpus_file(source_filename, bpe_encoder, model):
+    print("encoding: " + source_filename)
+    bpe_content = {}
+    bpe_content['filename'] = source_filename
+    bpe_content['bpeModel'] = model.get_model_name()
+    
+    #try:
+
+    tokenlist = runTokenizerForFile(source_filename)
+    java_tokens = [x.value for x in tokenlist]
+    # TODO: later use each line... and encode it for itself
+    
+    # is this usefull to write the token into the corpus right now? 
+    # bpe_content['tokens'] = java_tokens
+    
+    bpe_data = bpe_encoder.encode( java_tokens )
+    bpe_content['bpeTokenData'] = bpe_data
+    
+    destination_filename = source_filename + ".json";
+    save_corpus_bpe_content( bpe_content, destination_filename )
+    
+    #except:
+    #    print("could not encode: "+source_filename) 
+    
     pass
 
 
 def run_me(model):
     hparams = model.load_hparams()
+    
+    model_vocabulary = model.load_tokens()
+    model_bpe_data = model.load_bpe_pairs()
+    bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     
     time_at_start = datetime.datetime.now()
 
@@ -70,7 +109,7 @@ def run_me(model):
     time_after_walkingfiles = datetime.datetime.now()
     
     for filename in filenames:
-        build_bpe_encoded_corpus_file(filename)
+        build_bpe_encoded_corpus_file(filename, bpe_encoder, model)
      
     
     # print some statistics
@@ -83,7 +122,7 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     # model = BPEModel("1K-datapoint") 
-    model = BPEModel("10K-excerpt")
+    model = BPEModel("1K-datapoint")
     model.load_hparams()
     
     run_me(model)
