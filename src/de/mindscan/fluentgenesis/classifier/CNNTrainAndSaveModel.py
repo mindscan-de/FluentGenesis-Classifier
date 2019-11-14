@@ -37,6 +37,14 @@ from keras.utils import plot_model
 
 embedding_dim = 300
 
+'''
+The idea here was a cnn based classifier, which actually is a working concept
+i implemented for a different project. But CNN based classifiers can be more 
+seen as a pattern recognition system. So i just leave it there as is.
+
+Maybe i will work on this idea later on, but i think the transformer architecture
+is more powerfoll for text analysis.  
+'''
 
 def create_inline_CNNs( embedding_dimension ):
     cnn_input_layer = layers.Input(shape=(64,embedding_dimension,1))
