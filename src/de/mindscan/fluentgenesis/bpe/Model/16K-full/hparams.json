@@ -1,0 +1,1 @@
+{"global_wordlist": "global-token-count.json", "token_bpefile": "vocab.bpe.json", "token_filename": "tokens.json", "path": "D:\\Downloads\\Big-Code-full", "split_if_occurence_less_than": 1024, "tokens_to_emit": 16000}
