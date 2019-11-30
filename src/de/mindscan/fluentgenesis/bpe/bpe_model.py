@@ -84,7 +84,7 @@ class BPEModel(object):
     
     def save_tokens(self, bpe_tokens):
         with open(self.get_token_path(), 'w') as json_file:
-            json.dump(self.__sort_by_lexeme_value(bpe_tokens), json_file, indent=2, sort_keys=True)
+            json.dump(self.__sort_by_lexeme_value(bpe_tokens), json_file, indent=2, sort_keys=False)
         
     def load_tokens(self):
         with open(self.get_token_path(), 'r') as vocabulary_file:
