@@ -308,80 +308,87 @@ def select_best_bpe_match(current_token_frequencies):
     
     return shortest_element
 
+
+def find_first_repetition_start(frequencies):
+    last_frequency = -1
+    for i in range(0,len(frequencies)):
+        if last_frequency == frequencies[i]:
+            # if current element is as frequent as last, repetition started at last index
+            return i - 1
+        last_frequency = frequencies[i]
+    return len(frequencies)
+
+
+def find_first_interference_index(candidates):
+    last_word = set()
+    first_word = set()
+    
+    for i in range(0, len(candidates)):
+        if candidates[i][0] in last_word:
+            return i
+        if candidates[i][1] in first_word:
+            return i
+        
+        first_word.add( candidates[i][0])
+        last_word.add( candidates[i][1])
+        
+    return len(candidates)
+
 #
-# Problem is, These elements need ranking... we to prefer smaller joins to bigger joins,
-# otherwise we are adding one letter next to the word and the dictionary gets polluted 
-# part by part by the most frequent word, instead of the buildingblocks (smaller lexemes) of the words
-# both lexemes should be of nearly equal length as well, so that we do not end up adding one letter at 
-# a time, but we still want that behavior, but maybe later on... when working on the dictionary.
+# This algorithm works like this it compares frequencies of the words, we are creating either runlength of token-pairs with same frequency or with decreasing frequencies
+# runlength with same frequencies are ordered by shorter length first to longer length
+# runlength with decreasing frequencies are stopped when a run of same frequencies is detected
 # 
-# we should rank if multiple candidates are found  
+# Both runlength may require recalculations of the statistics, if a substitution creates an interference in the statistics, 
+# but it they do not interfere, we can avoid the recalculation of the statistics, 
+# and a collection of noninterfering bpe matches is returned
 #
-def select_best_bpe_matches(current_token_frequencies):
+# That strategy helps to reduce the amount of recalculations of the statistics
+#
+def collect_best_bpe_matches2(current_token_frequencies):
     sorted_current_lexeme_frequencies = sort_by_lexeme_occurence(current_token_frequencies)
     
-    head_iterator = iter(sorted_current_lexeme_frequencies)
-    print(" (head) ")
-    for _ in range(0,10):
-        print(str(next(head_iterator)))
-
-    current_iterator = iter(sorted_current_lexeme_frequencies)
+    # read first 128 most probable token pair frequencies
+    most_frequent_items = list(sorted_current_lexeme_frequencies.items())[:128]
+    print("Most Frequent Items: \n"+str(most_frequent_items))
     
-    first_element = next(current_iterator)
-    first_occurences = current_token_frequencies[first_element]
+    # read first two and compare frequenciesand derive how to proceed
+    # first_element = most_frequent_items[0][0]
+    first_element_occurence = most_frequent_items[0][1]
+    # second_element = most_frequent_items[1][0]
+    second_element_occurence = most_frequent_items[1][1]
     
-    next_element = next(current_iterator)
-    next_occurences = current_token_frequencies[next_element]
-    
-    result = []
-    
-    # first is max.
-    if(first_occurences > next_occurences):
-        # just emit five, to see, whether we see a speedup.
-        result.append(first_element)
-        result.append(next_element)
-        result.append(next(current_iterator))
-        result.append(next(current_iterator))
-        result.append(next(current_iterator))
-        return result
-    
-    # at least two elements have the same count, we should collect them and rank them.
-    same_probability = []
-    same_probability.append(first_element)
-    same_probability.append(next_element)
-
-    try:    
-        while True:
-            next_element = next(current_iterator)
-            next_occurences = current_token_frequencies[next_element]
+    if(first_element_occurence == second_element_occurence):
+        # if equal, select all pairs with that frequency
+        filtered_first_same_frequent_items = [ item[0] for item in most_frequent_items if item[1] == first_element_occurence ]
+        # sort them by length of concatenation
+        candidates = list(sorted(filtered_first_same_frequent_items, key=(lambda pair: len(pair[0])+len(pair[1])) ))
+        # TODO: Improvement we can append them by a run until next repetitions, this should be cool too
+    else:
+        # if not equal, select all pairs until two occur, which are equal
+        frequencies = [ item[1] for item in most_frequent_items ]
+        first_rep = find_first_repetition_start(frequencies)
+        
+        if first_rep==-1: 
+            first_rep = 1;
             
-            if first_occurences == next_occurences:
-                same_probability.append(next_element)
-            else:
-                break;
-    except:
-        # TOOD: will have to investigate that... especially
-        # case 1, next_occurence is 1 
-        pass
+        candidates = [ item[0] for item in most_frequent_items[:first_rep] ]
+ 
+    # no interferences when only one candidate present
+    if len(candidates) == 1 :
+        return candidates
+
+    # find the interference    
+    first_interference_index = find_first_interference_index(candidates)
     
-    #
-    #try:
-    #    print("We have more than one element with this occurence: "+ str(same_probability).encode("utf-8") + " occurence: "+ str(first_occurences).encode("utf-8"))
-    #except:
-    #    pass
+    # no interference found
+    if first_interference_index == len(candidates):
+        return candidates
     
-    # this is better than before but, it is still not the perfect strategy, to collect good words.  
-    # maybe we have to mix it with real wor(l)d statistics? or cheat on othe bpe-data, to make a better choice?
-    # but i guess, 14 GB of sourcecode can solve the statistics problem.
-    # Maybe we should not count "words" if they are too long... see (get_occurence_frequency2)
-    # Because in the end we still compose to big words... and start clogging up the dictionary with technical jargon...
-    
-    #shortest_element = min(same_probability, key=(lambda pair: len(pair[0])+len(pair[1])))
-    #result.append(shortest_element)
-    #return result
-    
-    # they must be ordered by length, shorter comes first...  then trimmed when they interfere
-    return same_probability
+    # reduce the list until the element occurs which requires updated statistics.
+    non_interferencing_candidates = candidates[:first_interference_index]
+    print( "Interference found " + str(non_interferencing_candidates) + " with "+ str(candidates[first_interference_index]))
+    return non_interferencing_candidates
 
 
 def find_word_containing( pair, current_token_map ):
@@ -467,74 +474,6 @@ def remove_rare_tokens(current_token_map):
             del current_token_map[key]
             
     return current_token_map
-    
-
-def build_dictionary(hparams, token_map):
-    current_token_map = rebuild_token_map(token_map)
-    #print (str(current_token_map).encode("utf-8"))
-    
-    print("the whole dictionary has now length : " + str(len(current_token_map)))
-    print("removing rare tokens")
-    current_token_map = remove_rare_tokens(current_token_map)
-    
-    print("the whole dictionary has now length : " + str(len(current_token_map)))
-    
-    print("removing tokens containing asian characters")
-    # remove asian tokens, because they cause the tokens to inflate too much, and I do not have enough training data for these "rare" tokens
-    # the asian characters alone will clog up the entire available dictionary
-    current_token_map = remove_tokens_containing_asian_chars(current_token_map)
-    
-    print("the whole dictionary has now length : " + str(len(current_token_map)))
-    print("emitting ascii and complete tokens")
-
-    # emit all (important) one element tokens
-    emit_obvious_ascii_tokens(current_token_map)
-    emit_complete_tokens(current_token_map)
-    
-    current_token_map = remove_completed_tokens(current_token_map)
-    
-    print("the whole dictionary has now length : " + str(len(current_token_map)))
-    
-    # print (str(current_token_map).encode("utf-8"))
-    
-    ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
-    for i in range(hparams['tokens_to_emit']):
-        print("------------------------------------")
-        print("Round: "+str(i))
-        
-        # TODO: nur jede n-te runde berechnen, eigentlich so lange, 
-        # wie das ende eines Tokens nicht der start eines frueheren anderen Tokens ist
-        # und der start eines Tokens nicht das ende eines frueheren anderen Tokens ist
-        # so lange stimmt die Reihenfolge naemlich...
-        # nur dann muessen die frequenzen neu berechnet werden.
-        # andernfalls brauchen nur die ersetzungen erfolgen.
-        current_token_frequencies = get_occurence_frequency2(current_token_map)
-            
-        mp_token_pair = select_best_bpe_match(current_token_frequencies)
-        
-        if current_token_frequencies[mp_token_pair] < 2:
-            # we are ready, we do not have any duplicates
-            break
-        
-        # emit first_token_pair
-        emit_most_probable_lexeme(mp_token_pair, current_token_frequencies[mp_token_pair])
-        
-        # replace the first tokenpair on whole token_map
-        current_token_map = replace_most_probable_lexemes(mp_token_pair, current_token_map ) 
-        
-        # emit all complete tokens
-        emit_complete_tokens(current_token_map)
-        current_token_map = remove_completed_tokens(current_token_map)
-        
-        if i%10 == 0:
-            print("the whole dictionary has now length : " + str(len(current_token_map)))
-        # current_token_map = emit_tokens(current_token_map)
-    
-    # break if to many tokens emitted
-    
-    # flush all remaining single tokens / flush all remaining tokens not in the tokenlist.
-    emit_unknown_partial_lexemes(current_token_map)
-    pass
 
 def build_dictionary_faster(hparams, token_map):
     current_token_map = rebuild_token_map(token_map)
@@ -566,6 +505,7 @@ def build_dictionary_faster(hparams, token_map):
     
     mp_token_pairs = []
     
+    stats_calculated = 0
     ## FOR - number of iterations / or there is no most probable lexeme anymore (count of lexems is one)
     i=0
     while i < hparams['tokens_to_emit']:
@@ -573,14 +513,9 @@ def build_dictionary_faster(hparams, token_map):
         print("Round: "+str(i))
         
         if len(mp_token_pairs) == 0:
-            # TODO: nur jede n-te runde berechnen, eigentlich so lange, 
-            # wie das ende eines Tokens nicht der start eines frueheren anderen Tokens ist
-            # und der start eines Tokens nicht das ende eines frueheren anderen Tokens ist
-            # so lange stimmt die Reihenfolge naemlich...
-            # nur dann muessen die frequenzen neu berechnet werden.
-            # andernfalls brauchen nur die ersetzungen erfolgen.
+            stats_calculated += 1
             current_token_frequencies = get_occurence_frequency2(current_token_map)
-            mp_token_pairs = select_best_bpe_matches(current_token_frequencies)
+            mp_token_pairs = collect_best_bpe_matches2(current_token_frequencies)
             
         mp_token_pair = mp_token_pairs[0]
         del mp_token_pairs[0]
@@ -609,6 +544,8 @@ def build_dictionary_faster(hparams, token_map):
     
     # flush all remaining single tokens / flush all remaining tokens not in the tokenlist.
     emit_unknown_partial_lexemes(current_token_map)
+    
+    print("Statistics were calculated %d times"%stats_calculated)
     pass
 
 
@@ -718,7 +655,6 @@ def run_me(model):
     
     print("number of items merged dictionary: " + str(len(_theGlobalTokenMap)))
     
-    #build_dictionary(hparams,_theGlobalTokenMap)
     build_dictionary_faster(hparams,_theGlobalTokenMap)
     
     time_after_buildingDict = datetime.datetime.now()
@@ -743,7 +679,7 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     # model = BPEModel("1K-datapoint") 
-    model = BPEModel("50K-full")
+    model = BPEModel("10K-excerpt")
     # model = BPEModel("16K-excerpt")
     model.load_hparams()
     
