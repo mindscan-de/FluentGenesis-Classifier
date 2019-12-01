@@ -367,6 +367,8 @@ def collect_best_bpe_matches2(current_token_frequencies):
         #       we handle same occurences special, because we order them and the ordering is basically done here, so now we can append
         #       more elements to the candidates
         #       that will save a lot of computation time....  
+        #       because in the last 40% of the processing of the corpus it slows down very noticably...
+        #       even then appending it would also be very valueable..
     else:
         # if not equal, select all pairs until two occur, which are equal
         frequencies = [ item[1] for item in most_frequent_items ]
