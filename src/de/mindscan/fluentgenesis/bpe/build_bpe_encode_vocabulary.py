@@ -350,7 +350,6 @@ def collect_best_bpe_matches2(current_token_frequencies):
     
     # read first 128 most probable token pair frequencies
     most_frequent_items = list(sorted_current_lexeme_frequencies.items())[:128]
-    print("Most Frequent Items: \n"+str(most_frequent_items))
     
     # read first two and compare frequenciesand derive how to proceed
     # first_element = most_frequent_items[0][0]
@@ -364,6 +363,10 @@ def collect_best_bpe_matches2(current_token_frequencies):
         # sort them by length of concatenation
         candidates = list(sorted(filtered_first_same_frequent_items, key=(lambda pair: len(pair[0])+len(pair[1])) ))
         # TODO: Improvement we can append them by a run until next repetitions, this should be cool too
+        #       with larger corpora, we get a run of a few elements with same occurences, followed by more with decreasing occurences
+        #       we handle same occurences special, because we order them and the ordering is basically done here, so now we can append
+        #       more elements to the candidates
+        #       that will save a lot of computation time....  
     else:
         # if not equal, select all pairs until two occur, which are equal
         frequencies = [ item[1] for item in most_frequent_items ]
@@ -387,7 +390,10 @@ def collect_best_bpe_matches2(current_token_frequencies):
     
     # reduce the list until the element occurs which requires updated statistics.
     non_interferencing_candidates = candidates[:first_interference_index]
-    print( "Interference found " + str(non_interferencing_candidates) + " with "+ str(candidates[first_interference_index]))
+    try:
+        print( "Interference found " + str(non_interferencing_candidates) + " with "+ str(candidates[first_interference_index]))
+    except:
+        pass
     return non_interferencing_candidates
 
 
@@ -679,7 +685,7 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     # model = BPEModel("1K-datapoint") 
-    model = BPEModel("10K-excerpt")
+    model = BPEModel("16K-full")
     # model = BPEModel("16K-excerpt")
     model.load_hparams()
     
