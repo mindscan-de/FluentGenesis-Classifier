@@ -30,6 +30,8 @@ import os
 import datetime
 import regex as re
 
+from functools import lru_cache
+
 from com.github.c2nes.javalang import tokenizer
 from _collections import OrderedDict
 
@@ -424,45 +426,235 @@ def emit_obvious_ascii_tokens(token_map):
     # range is 32 to 256-1
     for char in range(32, 256):
         emit_token(chr(char))
+        
+unsupported_vocab_ranges = [
+        # Latin Extended
+        (0x0100, 0x017F),  # Latin Extended-A
+        (0x0180, 0x024F),  # Latin Extended-B
+        (0x1E00, 0x1EFF),  # Latin Extended Additional
+        (0x2C60, 0x2C7F),  # Latin Extended-C
+        (0xA720, 0xA7FF),  # Latin Extended-D
+        (0xAB30, 0xAB6F),  # Latin Extended-E
+    
+        # Diacritical
+        (0x0300, 0x036F),  # Combining Diacritical Marks
+        (0x1AB0, 0x1AFF),  # Combining Diacritical Marks Extended
+        (0x1DC0, 0x1DFF),  # Combining Diacritical Marks Supplement
+        (0x20D0, 0x20FF),  # Combining Diacritical Marks for Symbols
+    
+        # IPA & phonetic Extemsion
+        (0x0250, 0x02AF),  # IPA Extensions
+        (0x1D00, 0x1D7F),  # Phonetic Extensions
+        (0x1D80, 0x1DBF),  # Phonetic Extensions Supplement
+    
+        # Spacing Modifier Letters
+        (0x02B0, 0x02FF),  # Spacing Modifier Letters
+    
+        # Greek Coptic
+        (0x0370, 0x03FF),  # Greek and coptic
+        (0x1F00, 0x1FFF),  # Greek Extended
+        (0x2C80, 0x2CFF),  # Coptic
+    
+        # Cyrillic
+        (0x0400, 0x04FF),  # Cyrillic)
+        (0x0500, 0x052F),  # Cyrillic Supplement
+        (0x2DE0, 0x2DFF),  # Cyrillic Extended-A
+        (0xA640, 0xA69F),  # Cyrillic Extended-B
+        (0x1C80, 0x1C8F),  # Cyrillic Extended-C
+    
+        # Armenian
+        (0x0530, 0x058F),  # Armenian 
+    
+        # Hebrew
+        (0x0590, 0x05FF),  # Hebrew
+    
+        # Arabic
+        (0x0600, 0x06FF),  # Arabic
+        (0x0750, 0x077F),  # Arabic Supplement
+        (0x08A0, 0x08FF),  # Arabic Extended-A
+        (0xFB50, 0xFDFF),  # Arabic Presentation Forms A
+        (0xFE70, 0xFEFF),  # Arabic Presentation Forms B
+    
+        # Syriac
+        (0x0700, 0x074F),  # Syriac
+        (0x0860, 0x086F),  # Syriac Supplement
+    
+        # Thaana
+        (0x0780, 0x07BF),  # Thaana
+    
+        # NKo
+        (0x07C0, 0x07FF),  # NKo
+    
+        # Samritan
+        (0x0800, 0x083F),  # Samaritan
+    
+        # Mandaic
+        (0x0840, 0x085F),  # Mandaic
+    
+        # Invalid range
+        (0x0870, 0x089F),  # Invalid range
 
-cjk_ranges = [
-        ( 0x4E00,  0x62FF),
-        ( 0x6300,  0x77FF),
-        ( 0x7800,  0x8CFF),
-        ( 0x8D00,  0x9FCC),
-        ( 0x3400,  0x4DB5),
-        ( 0xac00,  0xD7AF), # hangul syllabies, modern korean
-        (0x20000, 0x215FF),
-        (0x21600, 0x230FF),
-        (0x23100, 0x245FF),
-        (0x24600, 0x260FF),
-        (0x26100, 0x275FF),
-        (0x27600, 0x290FF),
-        (0x29100, 0x2A6DF),
-        (0x2A700, 0x2B734),
-        (0x2B740, 0x2B81D),
-        (0x2B820, 0x2CEAF),
-        (0x2CEB0, 0x2EBEF),
-        (0x2F800, 0x2FA1F)
+        # Indian Subkontinent Languages
+        (0x0900, 0x097F),  # Devanagari
+        (0xA8E0, 0xA8FF),  # Devanagari Extended
+         
+        # (0x0980, 0x09FF), # Bengali
+        # ...
+        (0x0900, 0x0DFF),  # India - covers multiple languages
+        (0xA830, 0xA83F),  # Common Indic Number Forms
+
+
+        (0x0E00, 0x0E7F),  # Thai
+        (0x0E80, 0x0EFF),  # Lao
+    
+        (0x0F00, 0x0FFF),  # Tibetan
+    
+        # Myanmar
+        (0x1000, 0x109F),  # Myanmar
+        (0xAA60, 0xAA7F),  # Myanmar Extended-A
+        (0xA9E0, 0xA9FF),  # Myanmar Extended-B
+    
+        # Georgian
+        (0x10A0, 0x10FF),  # Georgian
+        (0x2D00, 0x2D2F),  # Georgian Supplement
+        (0x1C90, 0x1CBF),  # Georgian Extended
+    
+        # Korean
+        (0x1100, 0x11FF),  # Hangul Jamo    
+        (0x3130, 0x318F),  # Hangul Compatibility Jamo    
+        (0xAC00, 0xD7AF),  # Hangul Syllables
+        (0xA960, 0xA97F),  # Hangul Jamo Extended-A
+        (0xD7B0, 0xD7FF),  # Hangul Jamo Extended B
+    
+        # Ethiopic
+        (0x1200, 0x139f), # Ethiopic, Ethopic Supplement
+        (0xAB00, 0xAB2F), # Ethiopic Extended-A
+        (0x2D80, 0x2DDF), # Ethiopic Extended
+
+        # Cherokee
+        (0x13A0, 0x13FF),  # Cherokee
+        (0xAB70, 0xABBF),  # Cherokee Supplement
+    
+        # Canadian Aboriginal
+        (0x1400, 0x167F),  # Unified Canadian Aboriginal Syllabics
+        (0x18B0, 0x18FF),  # Unified Canadian Aboriginal Syllabics Extended
+    
+    
+        (0x1680, 0x169F),  # Ogham
+        (0x16A0, 0x16FF),  # Runic
+        (0x1700, 0x171F),  # Tagalog
+        (0x1720, 0x173F),  # Hanunoo
+        (0x1740, 0x175F),  # Buhid
+        (0x1760, 0x177F),  # Tagbanwa
+        
+        # Khmer
+        (0x1780, 0x17FF),  # Khmer
+        (0x19E0, 0x19FF),  # Khmer Symbols
+    
+        # Mongolian
+        (0x1800, 0x18AF),  # Mongolian
+
+        (0x1900, 0x194F),  # Limbu
+        (0x1950, 0x197F),  # Tai Le
+        (0x1980, 0x19DF),  # New Tai Lue
+    
+        (0x1A00, 0x1A1F),  # Buginese
+        (0x1A20, 0x1AAF),  # Tai Tham
+    
+        (0x1B00, 0x1B7F),  # Balinese
+    
+        (0x1B80, 0x1BBF),  # Sundanese
+        (0x1CC0, 0x1CCF),  # Sundanese Supplement
+    
+        (0x1BC0, 0x1BFF),  # Batak
+    
+        (0x1C00, 0x1C4F),  # Lepcha
+        (0x1C50, 0x1C7F),  # Ol Chiki
+        (0x1CD0, 0x1CFF),  # Vedic Extensions
+    
+        # Punctuation
+        (0x2000, 0x206F),  # General Punctuation
+        (0x2E00, 0x2E7F),  # Supplemental Punctuation
+        (0x3000, 0x303F),  # CJK Symbols and Punctuation
+        
+        (0x2070, 0x209F),  # Superscripts and Subscripts
+        (0x20A0, 0x20CF),  # Currency Symbols
+    
+    
+        # Symbols
+        (0x2100, 0x26ff), # Letterlike Symbols, ... Miscelaneous Symbols
+        (0x2700, 0x27FF), # Dingbats & co
+        (0x2800, 0x28FF), # Braille
+        (0x2900, 0x2BFF), # Symbols Arrows math
+    
+        (0x2D30, 0x2D7F),  # Tifinagh
+        
+        (0x2f00, 0x2FFF),  # Kangxi radicals, Ideographic Description Characters
+    
+
+        # CJK
+        (0x3000, 0xa4FF),
+        (0xFE30, 0xFE4F),  # CJK Compatibility Forms
+        (0xF900, 0xFAFF),  # CJK Compatibility Ideographs
+        (0x2E80, 0x2EFF),  # CJK Radicals Supplement
+    
+
+        #
+        (0xA500, 0xA63F),  # Vai
+        (0xA6A0, 0xA6FF),  # Bamum
+        (0xA700, 0xA71F),  # Modifier Tone Letters
+        (0xA800, 0xA82F),  # Syloti Nagri
+        (0xA840, 0xA87F),  # Phags-pa
+        (0xA880, 0xA8DF),  # Saurashtra
+        (0xA900, 0xA92F),  # Kayah Li
+        (0xA930, 0xA95F),  # Rejang
+        (0xA980, 0xA9DF),  # Javanese
+    
+        (0xAA00, 0xAA5F),  # Cham
+        (0xAA80, 0xAADF),  # Tai Viet
+    
+        (0xABC0, 0xABFF),  # Meetei Mayek
+        (0xAAE0, 0xAAFF),  # Meetei Mayek Extensions
+
+        # Private Area
+        (0xE000,0xF8FF),  # Private Use Area
+        (0xD800, 0xDB7F), # High Surrogates
+        (0xDB80, 0xDBFF), # High Private Use Surrogates
+        (0xDC00, 0xDFFF), # Low Surrogates
+        # ???
+        (0x2c00, 0x2c5f), # Glagolitic
+        
+    
+        (0xFB00, 0xFB4F),  # Alphabetic Presentation Forms
+        (0xFE00, 0xFE0F),  # Variation Selectors
+        (0xFE10, 0xFE1F),  # Vertical Forms
+        (0xFE20, 0xFE2F),  # Combining Half Marks
+        (0xFE50, 0xFE6F),  # Small Form Variants
+        
+        (0xFF00, 0xFFEF),  # Halfwidth and Fullwidth Forms
+    
+        # OLD and OLDER
+        (0x010000, 0x10FFFF) # Basically everything what is not as important to be in first ~65000 Codes
     ]
 
-def is_cjk(char):
+@lru_cache(maxsize=None)
+def is_unsupported_range(char):
     char = ord(char)
-    for bottom, top in cjk_ranges:
+    for bottom, top in unsupported_vocab_ranges:
         if char >= bottom and char <= top:
             return True
     return False
         
-def contains_asian_chars(key):
+def contains_unsupported_vocab(key):
     for c in key:
-        if is_cjk(c):
+        if is_unsupported_range(c):
             return True
     return False
         
-def remove_tokens_containing_asian_chars(current_token_map):
+def remove_tokens_containing_unsupported_chars(current_token_map):
     keys_to_remove = []
     for key in current_token_map.keys():
-        if contains_asian_chars(key):
+        if contains_unsupported_vocab(key):
             keys_to_remove.append(key)
              
     if len(keys_to_remove) >0:
@@ -474,7 +666,7 @@ def remove_tokens_containing_asian_chars(current_token_map):
 def remove_rare_tokens(current_token_map):
     keys_to_remove = []
     for key, count in current_token_map.items():
-        if count < 6:
+        if count < 4:
             keys_to_remove.append(key)
              
     if len(keys_to_remove) >0:
@@ -493,10 +685,10 @@ def build_dictionary_faster(hparams, token_map):
     
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     
-    print("removing tokens containing asian characters")
+    print("removing tokens containing unsupported characters")
     # remove asian tokens, because they cause the tokens to inflate too much, and I do not have enough training data for these "rare" tokens
     # the asian characters alone will clog up the entire available dictionary
-    current_token_map = remove_tokens_containing_asian_chars(current_token_map)
+    current_token_map = remove_tokens_containing_unsupported_chars(current_token_map)
     
     print("the whole dictionary has now length : " + str(len(current_token_map)))
     print("emitting ascii and complete tokens")
