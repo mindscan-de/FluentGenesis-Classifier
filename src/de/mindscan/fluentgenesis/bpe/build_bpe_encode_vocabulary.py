@@ -666,7 +666,7 @@ def remove_tokens_containing_unsupported_chars(current_token_map):
 def remove_rare_tokens(current_token_map):
     keys_to_remove = []
     for key, count in current_token_map.items():
-        if count < 4:
+        if count < 6:
             keys_to_remove.append(key)
              
     if len(keys_to_remove) >0:
