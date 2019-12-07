@@ -745,7 +745,7 @@ def build_dictionary_faster(hparams, token_map):
         emit_complete_tokens(current_token_map)
         current_token_map = remove_completed_tokens(current_token_map)
         
-        if i%10 == 0:
+        if i%50 == 0:
             print("the whole dictionary has now length : " + str(len(current_token_map)))
         # current_token_map = emit_tokens(current_token_map)
         
@@ -890,7 +890,7 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     # model = BPEModel("1K-datapoint") 
-    model = BPEModel("10K-excerpt")
+    model = BPEModel("16K-full")
     # model = BPEModel("16K-excerpt")
     model.load_hparams()
     
