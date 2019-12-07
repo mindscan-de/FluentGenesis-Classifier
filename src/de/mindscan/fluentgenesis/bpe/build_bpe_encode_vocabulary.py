@@ -347,40 +347,51 @@ def find_first_interference_index(candidates):
 #
 # That strategy helps to reduce the amount of recalculations of the statistics
 #
+
+def extract_items_with_decreasing_frequency(most_frequent_items):
+    # if not equal, select all pairs until two occur, which are equal
+    frequencies = [item[1] for item in most_frequent_items]
+    first_rep = find_first_repetition_start(frequencies)
+    if first_rep == -1:
+        first_rep = 1
+    candidates = [item[0] for item in most_frequent_items[:first_rep]]
+    return candidates
+
+
+def extract_items_with_same_frequency(most_frequent_items, first_element_occurence):
+    # if equal, select all pairs with that frequency
+    filtered_first_same_frequent_items = [item[0] for item in most_frequent_items if item[1] == first_element_occurence]
+    # sort them by length of concatenation
+    # TODO: this is not stable... because the items are in random order and only sorted by length.
+    candidates = list(sorted(filtered_first_same_frequent_items, key=(lambda pair:len(pair[0]) + len(pair[1]))))
+    return candidates
+
 def collect_best_bpe_matches2(current_token_frequencies):
     sorted_current_lexeme_frequencies = sort_by_lexeme_occurence(current_token_frequencies)
     
     # read first 128 most probable token pair frequencies
-    most_frequent_items = list(sorted_current_lexeme_frequencies.items())[:128]
-    
-    # read first two and compare frequenciesand derive how to proceed
-    # first_element = most_frequent_items[0][0]
-    first_element_occurence = most_frequent_items[0][1]
-    # second_element = most_frequent_items[1][0]
-    second_element_occurence = most_frequent_items[1][1]
-    
-    if(first_element_occurence == second_element_occurence):
-        # if equal, select all pairs with that frequency
-        filtered_first_same_frequent_items = [ item[0] for item in most_frequent_items if item[1] == first_element_occurence ]
-        # sort them by length of concatenation
-        candidates = list(sorted(filtered_first_same_frequent_items, key=(lambda pair: len(pair[0])+len(pair[1])) ))
-        # TODO: Improvement we can append them by a run until next repetitions, this should be cool too
-        #       with larger corpora, we get a run of a few elements with same occurences, followed by more with decreasing occurences
-        #       we handle same occurences special, because we order them and the ordering is basically done here, so now we can append
-        #       more elements to the candidates
-        #       that will save a lot of computation time....  
-        #       because in the last 40% of the processing of the corpus it slows down very noticably...
-        #       even then appending it would also be very valueable..
-    else:
-        # if not equal, select all pairs until two occur, which are equal
-        frequencies = [ item[1] for item in most_frequent_items ]
-        first_rep = find_first_repetition_start(frequencies)
+    most_frequent_items = list(sorted_current_lexeme_frequencies.items())[:256]
+
+    candidates = []
+
+    while len(candidates)<128:
+        # read first two and compare frequenciesand derive how to proceed
+        # first_element = most_frequent_items[0][0]
+        first_element_occurence = most_frequent_items[0][1]
+        # second_element = most_frequent_items[1][0]
+        second_element_occurence = most_frequent_items[1][1]
         
-        if first_rep==-1: 
-            first_rep = 1;
+        if(first_element_occurence == second_element_occurence):
+            elements_to_add = extract_items_with_same_frequency(most_frequent_items, first_element_occurence)
+        else:
+            elements_to_add = extract_items_with_decreasing_frequency(most_frequent_items)
+
+        # append each element        
+        candidates.extend( elements_to_add )
+        
+        # reduce queue by added elements, and process next part - This will prepare a queue, which is nearly only split at interferences 
+        most_frequent_items = most_frequent_items[len(elements_to_add):] 
             
-        candidates = [ item[0] for item in most_frequent_items[:first_rep] ]
- 
     # no interferences when only one candidate present
     if len(candidates) == 1 :
         return candidates
@@ -424,7 +435,7 @@ def find_word_containing( pair, current_token_map ):
 
 def emit_obvious_ascii_tokens(token_map):
     # range is 32 to 256-1
-    for char in range(32, 256):
+    for char in range(0, 256):
         emit_token(chr(char))
         
 unsupported_vocab_ranges = [
