@@ -663,10 +663,10 @@ def remove_tokens_containing_unsupported_chars(current_token_map):
             
     return current_token_map
 
-def remove_rare_tokens(current_token_map):
+def remove_rare_tokens(hparams, current_token_map):
     keys_to_remove = []
     for key, count in current_token_map.items():
-        if count < 6:
+        if count < hparams["rare_tokens"]:
             keys_to_remove.append(key)
              
     if len(keys_to_remove) >0:
@@ -879,7 +879,7 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     # model = BPEModel("1K-datapoint") 
-    model = BPEModel("16K-full")
+    model = BPEModel("16K-excerpt")
     # model = BPEModel("16K-excerpt")
     model.load_hparams()
     

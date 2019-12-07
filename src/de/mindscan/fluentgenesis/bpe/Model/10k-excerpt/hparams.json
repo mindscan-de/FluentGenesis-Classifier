@@ -1,1 +1,1 @@
-{"tokens_to_emit": 10000, "token_filename": "tokens.json", "split_if_occurence_less_than": 128, "global_wordlist": "global-token-count.json", "path": "D:\\Downloads\\Big-Code-excerpt", "token_bpefile": "vocab.bpe.json"}
+{"tokens_to_emit": 10000, "token_filename": "tokens.json", "split_if_occurence_less_than": 128, "global_wordlist": "global-token-count.json", "path": "D:\\Downloads\\Big-Code-excerpt", "token_bpefile": "vocab.bpe.json", "rare_tokens": 3}
