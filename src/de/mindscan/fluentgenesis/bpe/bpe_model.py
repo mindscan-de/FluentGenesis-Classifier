@@ -36,11 +36,11 @@ class BPEModel(object):
     classdocs
     '''
 
-    def __init__(self, modelname):
+    def __init__(self, modelname, basepath = ""):
         '''
         Constructor
         '''
-        self.__model_directory = "Model"
+        self.__model_directory = basepath + "Model"
         self.__model_name = modelname
         self.__hparams = {}
         
