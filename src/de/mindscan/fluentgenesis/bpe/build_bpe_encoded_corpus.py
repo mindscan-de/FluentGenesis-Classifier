@@ -90,7 +90,10 @@ def build_bpe_encoded_corpus_file(source_filename, bpe_encoder, model):
         save_corpus_bpe_content( bpe_content, destination_filename )
     
     except:
-        print("could not encode: "+source_filename) 
+        try:
+            print("could not encode: "+source_filename)
+        except:
+            print("could not encode: But could also not print out filename...") 
     
     pass
 
@@ -121,7 +124,7 @@ def run_me(model):
 if __name__ == '__main__':
     # "1K-datapoint", "10K-excerpt", "16K-excerpt", "50K-full", "100K-full"
     # model = BPEModel("1K-datapoint") 
-    model = BPEModel("10K-excerpt")
+    model = BPEModel("16K-full")
     model.load_hparams()
     
     run_me(model)
