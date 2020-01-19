@@ -1,13 +1,33 @@
 '''
-Created on 17.01.2020
+Created on 31.08.2019
 
-* Prepare Methodname Dataset
+MIT License
 
-@author: JohnDoe
+Copyright (c) 2019 Maxim Gansert
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+@author: Maxim Gansert, Mindscan
 '''
 
-
-from com.github.c2nes.javalang import tokenizer, parser
+from com.github.c2nes.javalang import tokenizer, parser, ast
+from com.github.c2nes.javalang.tree import ClassDeclaration
 
 #
 # Process the compilation unit
@@ -88,6 +108,7 @@ def extract_method( method_index , collected_start_positions, java_tokenlist):
     # TODO: should be optimized into one method, since it is basically collecting a longer
     #       list with "collect_method_teokens and then reducing it to a shorter version with 
     #       "extract_method_body"
+    # rework token, extraction
     return extract_method_body ( collect_method_tokens( method_index, collected_start_positions, java_tokenlist ) ) 
 
 # Will extract the methods of a class
@@ -106,12 +127,6 @@ def extract_methods_from_class( class_declaration, java_tokenlist ):
 
 
 def extract_allmethods_from_compilation_unit(compilation_unit_ast, java_tokenlist):
-    
-    # class can be the only one in a compilation unit
-    # class can be in a class inside of a compilation unit
-    # class can be in a method inside of a compilation unit
-    # walk the tree and calculate the start positions of these classes / return the classes, and then do the rest on them
-    
     # I guess it would be better to use a walker, which is able to find each class_declaration, instead of iterating over the class only 
     for i in range(len(compilation_unit_ast.types)):
         class_declaration = compilation_unit_ast.types[i]
@@ -122,7 +137,35 @@ def extract_allmethods_from_compilation_unit(compilation_unit_ast, java_tokenlis
             print(tokenizer.reformat_tokens(single_method['method_body']))
     pass
 
+
+def extract_classes_from_compilation_unit(compilation_unit_ast):
+    classes = []
+
+    for _,node in ast.walk_tree(compilation_unit_ast):
+        if isinstance(node, ClassDeclaration):
+            classes.append(node)
+        
+    [ print(clazz.name) for clazz in classes ]
+    print (classes)
+    return classes
+
+def runTokenizerForFile(filename):
+    with open(filename,"rb") as current_source_file:
+        all_lines_as_string = map(lambda line: line.decode('utf-8'), current_source_file.readlines()[0:])
+        current_source_code = "".join(all_lines_as_string) 
+        return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
+
+
+
 def doWork():
+    dataset_directory = 'D:\\Downloads\\Big-Code-full\\java_projects\\'
+    some_source_filename = dataset_directory+'Algorithms\\src\\org\\rekdev\\trees\\BinaryTreeNode.java'
+    
+    java_tokenlist = runTokenizerForFile(some_source_filename)
+    parsed_compilation_unit = parser.parse(java_tokenlist)
+    
+    extract_allmethods_from_compilation_unit(parsed_compilation_unit, java_tokenlist)
+    
     print("Hello world!")
     pass
 
