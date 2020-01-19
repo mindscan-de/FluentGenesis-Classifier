@@ -27,7 +27,7 @@ SOFTWARE.
 '''
 
 from com.github.c2nes.javalang import tokenizer, parser, ast
-from com.github.c2nes.javalang.tree import ClassDeclaration
+from com.github.c2nes.javalang.tree import ClassDeclaration, ClassCreator
 
 #
 # Process the compilation unit
@@ -167,10 +167,11 @@ def doWork():
     # some_source_filename = dataset_directory+'CSSMin\\CSSMin.java'
     
     # nested classes
-    # some_source_filename = dataset_directory+'???'
+    # some_source_filename = dataset_directory+'cvs-plugin\\\src\\\main\\\java\\\hudson\\\scm\\CVSChangeLogSet.java'
 
     # inner and/or anonymous classes
-    # some_source_filename = dataset_directory+'???'
+    # TODO: anonymous innter classes won't be recognized as ClassDeclaration / ClassCreator kann im Body auch methodendeklarationen enthalten
+    # some_source_filename = dataset_directory+'emf\\plugins\\org.eclipse.emf.codegen\\src\\org\\eclipse\\emf\\codegen\\CodeGen.java'
     
     
     java_tokenlist = runTokenizerForFile(some_source_filename)
