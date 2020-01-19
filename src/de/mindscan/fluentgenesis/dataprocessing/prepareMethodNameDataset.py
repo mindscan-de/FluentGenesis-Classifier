@@ -159,7 +159,19 @@ def runTokenizerForFile(filename):
 
 def doWork():
     dataset_directory = 'D:\\Downloads\\Big-Code-full\\java_projects\\'
+    
+    # only one class in compilation unit
     some_source_filename = dataset_directory+'Algorithms\\src\\org\\rekdev\\trees\\BinaryTreeNode.java'
+    
+    # has multiple classes parallel in one compilation unit
+    # some_source_filename = dataset_directory+'CSSMin\\CSSMin.java'
+    
+    # nested classes
+    # some_source_filename = dataset_directory+'???'
+
+    # inner and/or anonymous classes
+    # some_source_filename = dataset_directory+'???'
+    
     
     java_tokenlist = runTokenizerForFile(some_source_filename)
     parsed_compilation_unit = parser.parse(java_tokenlist)
