@@ -168,10 +168,13 @@ def process_source_file(some_source_filename):
     java_tokenlist = runTokenizerForFile(some_source_filename)
     parsed_compilation_unit = parser.parse(java_tokenlist)
     extract_allmethods_from_compilation_unit(parsed_compilation_unit, java_tokenlist)
-    # TODO: collect filenames, collect line numbers, etc  
+    # TODO: collect filenames, collect line numbers, methodnames, etc  
     # TODO: encode body code and methodnames using the bpe-vocabulary
     # TODO: do some statistics on the tokens and on the java code, so selection of smaller datasets is possible
-    # TODO: save this into a bunch of json files 
+    # TODO: save this into a bunch of json files
+    # TODO: find duplicate methodnames, rank them, maybe cleanup dataset
+    # TODO: find bad methodnames
+    # TODO: build learning pairs for bad and good namings -- challenge number 5
      
 
 def doWork():
