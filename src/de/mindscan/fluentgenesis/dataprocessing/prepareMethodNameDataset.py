@@ -27,7 +27,7 @@ SOFTWARE.
 '''
 
 from com.github.c2nes.javalang import tokenizer, parser, ast
-from com.github.c2nes.javalang.tree import ClassDeclaration, ClassCreator
+from com.github.c2nes.javalang.tree import ClassDeclaration
 
 #
 # Process the compilation unit
