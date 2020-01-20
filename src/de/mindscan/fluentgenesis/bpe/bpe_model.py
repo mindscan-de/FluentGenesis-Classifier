@@ -59,6 +59,8 @@ class BPEModel(object):
     def get_global_tokenstatistics_path(self):
         return os.path.join(self.__model_directory, self.__model_name, self.__hparams['global_wordlist'])
     
+    def get_data_source_path(self):
+        return self.__hparams['path']
     
     def load_hparams(self):
         with open(self.get_hparam_path(), 'r') as paramfile_file:
