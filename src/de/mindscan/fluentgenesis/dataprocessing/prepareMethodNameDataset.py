@@ -25,9 +25,12 @@ SOFTWARE.
 
 @author: Maxim Gansert, Mindscan
 '''
+import os
 
 from com.github.c2nes.javalang import tokenizer, parser, ast
 from com.github.c2nes.javalang.tree import ClassDeclaration
+
+from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 
 #
 # Process the compilation unit
@@ -127,15 +130,18 @@ def extract_methods_from_class( class_declaration, java_tokenlist ):
 
 
 def extract_allmethods_from_compilation_unit(compilation_unit_ast, java_tokenlist):
+    all_methods = []
+    
     # I guess it would be better to use a walker, which is able to find each class_declaration, instead of iterating over the class only 
     for i in range(len(compilation_unit_ast.types)):
         class_declaration = compilation_unit_ast.types[i]
         extracted_methods = extract_methods_from_class(class_declaration, java_tokenlist )
-
+        all_methods.extend(extracted_methods)
         for single_method in extracted_methods:
             print("==["+single_method['method_name']+"]==")
             print(tokenizer.reformat_tokens(single_method['method_body']))
-    pass
+    
+    return all_methods
 
 
 def extract_classes_from_compilation_unit(compilation_unit_ast):
@@ -149,19 +155,34 @@ def extract_classes_from_compilation_unit(compilation_unit_ast):
     print (classes)
     return classes
 
+
 def runTokenizerForFile(filename):
     with open(filename,"rb") as current_source_file:
         all_lines_as_string = map(lambda line: line.decode('utf-8'), current_source_file.readlines()[0:])
         current_source_code = "".join(all_lines_as_string) 
         return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
+    
 
-
+def process_source_file(some_source_filename):
+    # Work on the source file
+    java_tokenlist = runTokenizerForFile(some_source_filename)
+    parsed_compilation_unit = parser.parse(java_tokenlist)
+    extract_allmethods_from_compilation_unit(parsed_compilation_unit, java_tokenlist)
+    # TODO: collect filenames, collect line numbers, etc  
+    # TODO: encode body code and methodnames using the bpe-vocabulary
+    # TODO: do some statistics on the tokens and on the java code, so selection of smaller datasets is possible
+    # TODO: save this into a bunch of json files 
+     
 
 def doWork():
-    dataset_directory = 'D:\\Downloads\\Big-Code-full\\java_projects\\'
+    model = BPEModel("16K-full", "../bpe/")
+    model.load_hparams()
+    
+    # dataset_directory = 'D:\\Downloads\\Big-Code-full\\'
+    dataset_directory = model.get_data_source_path()
     
     # only one class in compilation unit
-    some_source_filename = dataset_directory+'Algorithms\\src\\org\\rekdev\\trees\\BinaryTreeNode.java'
+    some_source_filename = os.path.join( dataset_directory, 'java_projects\\Algorithms\\src\\org\\rekdev\\trees\\BinaryTreeNode.java');
     
     # has multiple classes parallel in one compilation unit
     # some_source_filename = dataset_directory+'CSSMin\\CSSMin.java'
@@ -173,11 +194,7 @@ def doWork():
     # TODO: anonymous innter classes won't be recognized as ClassDeclaration / ClassCreator kann im Body auch methodendeklarationen enthalten
     # some_source_filename = dataset_directory+'emf\\plugins\\org.eclipse.emf.codegen\\src\\org\\eclipse\\emf\\codegen\\CodeGen.java'
     
-    
-    java_tokenlist = runTokenizerForFile(some_source_filename)
-    parsed_compilation_unit = parser.parse(java_tokenlist)
-    
-    extract_allmethods_from_compilation_unit(parsed_compilation_unit, java_tokenlist)
+    process_source_file(some_source_filename)
     
     print("Hello world!")
     pass
