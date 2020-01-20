@@ -105,7 +105,7 @@ def calculate_method_start_indexes_for_class( class_declaration ):
 
     return collected_start_positions, collected_method_names
 
-
+# TODO: optimize this: because we will work on 2.1 million files, that must be fast
 def extract_method( method_index , collected_start_positions, java_tokenlist):
     # ATTN: the start positions are off by the modifiers, ans start at the type signature.
     # TODO: should be optimized into one method, since it is basically collecting a longer
