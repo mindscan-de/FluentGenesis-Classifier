@@ -69,7 +69,7 @@ def build_replacement_key_for(token, first_mptl, next_mptl, joined):
 import ast
 
 def translate(data):
-    print(str(data).encode('utf-8'))
+    # print(str(data).encode('utf-8'))
     for pair,_ in data.items():
         # print(str(pair).encode('utf-8'))
         # TODO: BUGGY -
