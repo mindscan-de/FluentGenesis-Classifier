@@ -33,6 +33,8 @@ from com.github.c2nes.javalang.tree import ClassDeclaration
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 
+from .method_dataset import MethodDataset
+
 #
 # Process the compilation unit
 # ----------------------------
@@ -159,7 +161,7 @@ def runTokenizerForFile(filename):
         return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
     
 
-def process_source_file(dataset_directory, source_file_path, encoder, dataset=None):
+def process_source_file(dataset_directory, source_file_path, encoder, dataset):
     # derive the full source file path
     full_source_file_path = os.path.join( dataset_directory, source_file_path);
     
@@ -175,26 +177,28 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset=No
         method_class_name = single_method['class_name']
         method_body = single_method['method_body']
         
-        print("==["+method_name+" / "+method_class_name+"]==")
-    
         # encode body code and methodnames using the bpe-vocabulary
         bpe_encoded_methodname = encoder.encode( [ method_name ] )
         bpe_encoded_methodbody = encoder.encode([x.value for x in method_body])
-        
         
         # do some calculations on the tokens and on the java code, so selection of smaller datasets is possible
         bpe_encoded_method_name_length = len(bpe_encoded_methodname)
         bpe_encoded_method_body_length = len(bpe_encoded_methodbody)
         java_token_method_body_length = len(method_body)
         
-        # TODO: save this into a bunch of json files
-        if dataset is not None:
-            dataset.add_method_data(source_file_path, method_class_name, method_name, bpe_encoded_method_name_length, bpe_encoded_methodname, bpe_encoded_method_body_length, bpe_encoded_methodbody )
-
-        print("bpe_method_name["+str(bpe_encoded_method_name_length)+"] = " + str(bpe_encoded_methodname))
-        print("bpe_body["+str(bpe_encoded_method_body_length)+"] = " + str(bpe_encoded_methodbody))
-        
-        print(tokenizer.reformat_tokens(method_body))
+        # save this into dataset
+        method_data = { 
+            "source_file_path": source_file_path,
+            "method_class_name": method_class_name,
+            "method_class_name": method_class_name,
+            "method_name": method_name,
+            "encoded_method_name_length": bpe_encoded_method_name_length,
+            "encoded_method_name": bpe_encoded_methodname,
+            "encoded_method_body_length": bpe_encoded_method_body_length,
+            "encoded_method_body": bpe_encoded_methodbody,
+            "method_body": method_body 
+            }
+        dataset.add_method_data( method_data )
 
     # TODO: the following things are part of the exploration of the resulting dataset        
     # TODO: find duplicate methodnames, rank them, maybe cleanup dataset
@@ -227,7 +231,9 @@ def doWork():
     
     encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     
-    process_source_file(dataset_directory, some_source_filename, encoder)
+    methdod_dataset = MethodDataset()
+    
+    process_source_file(dataset_directory, some_source_filename, encoder, methdod_dataset)
     pass
 
 if __name__ == '__main__':
