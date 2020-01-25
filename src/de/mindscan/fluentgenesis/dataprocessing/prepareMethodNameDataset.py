@@ -91,6 +91,7 @@ def collect_method_tokens (index, collected_start_positions, java_tokenlist ):
             
     return collected_method_tokens
 
+
 def calculate_method_start_indexes_for_class( class_declaration ):
     collected_start_positions = []
     collected_method_names = []
@@ -108,6 +109,7 @@ def calculate_method_start_indexes_for_class( class_declaration ):
 
     return collected_start_positions, collected_method_names
 
+
 # TODO: optimize this: because we will work on 2.1 million files, that must be fast
 def extract_method( method_index , collected_start_positions, java_tokenlist):
     # ATTN: the start positions are off by the modifiers, ans start at the type signature.
@@ -116,6 +118,7 @@ def extract_method( method_index , collected_start_positions, java_tokenlist):
     #       "extract_method_body"
     # rework token, extraction
     return extract_method_body ( collect_method_tokens( method_index, collected_start_positions, java_tokenlist ) ) 
+
 
 # Will extract the methods of a class
 def extract_methods_from_class( class_declaration, java_tokenlist ):
@@ -184,7 +187,6 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
         # do some calculations on the tokens and on the java code, so selection of smaller datasets is possible
         bpe_encoded_method_name_length = len(bpe_encoded_methodname)
         bpe_encoded_method_body_length = len(bpe_encoded_methodbody)
-        java_token_method_body_length = len(method_body)
         
         # save this into dataset
         method_data = { 
@@ -199,11 +201,6 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
             "method_body": method_body 
             }
         dataset.add_method_data( method_data )
-
-    # TODO: the following things are part of the exploration of the resulting dataset        
-    # TODO: find duplicate methodnames, rank them, maybe cleanup dataset
-    # TODO: find bad methodnames
-    # TODO: build learning pairs for bad and good namings -- challenge number 5
      
 
 def doWork():
@@ -236,5 +233,10 @@ def doWork():
     process_source_file(dataset_directory, some_source_filename, encoder, methdod_dataset)
     pass
 
+
+# TODO: the following things are part of the exploration of the resulting dataset        
+# TODO: find duplicate methodnames, rank them, maybe cleanup dataset
+# TODO: find bad methodnames
+# TODO: build learning pairs for bad and good namings -- challenge number 5
 if __name__ == '__main__':
     doWork()
