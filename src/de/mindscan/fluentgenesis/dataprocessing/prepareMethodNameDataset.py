@@ -159,9 +159,12 @@ def runTokenizerForFile(filename):
         return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
     
 
-def process_source_file(some_source_filename, encoder):
+def process_source_file(dataset_directory, source_file_path, encoder, dataset=None):
+    # derive the full source file path
+    full_source_file_path = os.path.join( dataset_directory, source_file_path);
+    
     # Work on the source file
-    java_tokenlist = runTokenizerForFile(some_source_filename)
+    java_tokenlist = runTokenizerForFile(full_source_file_path)
     parsed_compilation_unit = parser.parse(java_tokenlist)
     
     # collect file names, line numbers, method names, class names etc  
@@ -189,7 +192,10 @@ def process_source_file(some_source_filename, encoder):
         java_token_method_body_length = len(method_body)
         
         # TODO: save this into a bunch of json files
-        
+        if dataset is not None:
+            dataset.add_method_data(source_file_path, method_class_name, method_name, bpe_encoded_method_name_length, bpe_encoded_methodname, bpe_encoded_method_body_length, bpe_encoded_methodbody )
+
+    # TODO: the following things are part of the exploration of the resulting dataset        
     # TODO: find duplicate methodnames, rank them, maybe cleanup dataset
     # TODO: find bad methodnames
     # TODO: build learning pairs for bad and good namings -- challenge number 5
@@ -203,24 +209,24 @@ def doWork():
     dataset_directory = model.get_data_source_path()
     
     # only one class in compilation unit
-    some_source_filename = os.path.join( dataset_directory, 'java_projects\\Algorithms\\src\\org\\rekdev\\trees\\BinaryTreeNode.java');
+    # some_source_filename = 'java_projects\\Algorithms\\src\\org\\rekdev\\trees\\BinaryTreeNode.java'
     
     # has multiple classes parallel in one compilation unit
-    # some_source_filename = dataset_directory+'CSSMin\\CSSMin.java'
+    some_source_filename = 'java_projects\\CSSMin\\CSSMin.java'
     
     # nested classes
-    # some_source_filename = dataset_directory+'cvs-plugin\\\src\\\main\\\java\\\hudson\\\scm\\CVSChangeLogSet.java'
+    # some_source_filename = 'java_projects\\cvs-plugin\\\src\\\main\\\java\\\hudson\\\scm\\CVSChangeLogSet.java'
 
     # inner and/or anonymous classes
     # TODO: anonymous innter classes won't be recognized as ClassDeclaration / ClassCreator kann im Body auch methodendeklarationen enthalten
-    # some_source_filename = dataset_directory+'emf\\plugins\\org.eclipse.emf.codegen\\src\\org\\eclipse\\emf\\codegen\\CodeGen.java'
+    # some_source_filename = 'java_projects\\emf\\plugins\\org.eclipse.emf.codegen\\src\\org\\eclipse\\emf\\codegen\\CodeGen.java'
     
     model_vocabulary = model.load_tokens()
     model_bpe_data = model.load_bpe_pairs()
     
     encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     
-    process_source_file(some_source_filename, encoder)
+    process_source_file(dataset_directory, some_source_filename, encoder)
     pass
 
 if __name__ == '__main__':
