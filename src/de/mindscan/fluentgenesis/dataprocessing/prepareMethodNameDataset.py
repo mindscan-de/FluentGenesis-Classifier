@@ -181,19 +181,20 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset=No
         bpe_encoded_methodname = encoder.encode( [ method_name ] )
         bpe_encoded_methodbody = encoder.encode([x.value for x in method_body])
         
-        print("bpe_method_name = " + str(bpe_encoded_methodname))
-        print("bpe_body = " + str(bpe_encoded_methodbody))
-        
-        print(tokenizer.reformat_tokens(method_body))
         
         # do some calculations on the tokens and on the java code, so selection of smaller datasets is possible
-        bpe_encoded_method_body_length = len(bpe_encoded_methodbody)
         bpe_encoded_method_name_length = len(bpe_encoded_methodname)
+        bpe_encoded_method_body_length = len(bpe_encoded_methodbody)
         java_token_method_body_length = len(method_body)
         
         # TODO: save this into a bunch of json files
         if dataset is not None:
             dataset.add_method_data(source_file_path, method_class_name, method_name, bpe_encoded_method_name_length, bpe_encoded_methodname, bpe_encoded_method_body_length, bpe_encoded_methodbody )
+
+        print("bpe_method_name["+str(bpe_encoded_method_name_length)+"] = " + str(bpe_encoded_methodname))
+        print("bpe_body["+str(bpe_encoded_method_body_length)+"] = " + str(bpe_encoded_methodbody))
+        
+        print(tokenizer.reformat_tokens(method_body))
 
     # TODO: the following things are part of the exploration of the resulting dataset        
     # TODO: find duplicate methodnames, rank them, maybe cleanup dataset
