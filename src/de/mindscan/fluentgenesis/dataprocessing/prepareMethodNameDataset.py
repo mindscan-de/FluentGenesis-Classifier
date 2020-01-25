@@ -168,19 +168,28 @@ def process_source_file(some_source_filename, encoder):
     all_methods_per_source = extract_allmethods_from_compilation_unit(parsed_compilation_unit, java_tokenlist)
     
     for single_method in all_methods_per_source:
-        print("==["+single_method['method_name']+" / "+single_method['class_name']+"]==")
+        method_name = single_method['method_name']
+        method_class_name = single_method['class_name']
+        method_body = single_method['method_body']
+        
+        print("==["+method_name+" / "+method_class_name+"]==")
     
         # encode body code and methodnames using the bpe-vocabulary
-        bpe_encoded_method = encoder.encode([x.value for x in single_method['method_body']])
-        bpe_encoded_methodname = encoder.encode( [ single_method['method_name'] ] )
+        bpe_encoded_methodname = encoder.encode( [ method_name ] )
+        bpe_encoded_methodbody = encoder.encode([x.value for x in method_body])
         
         print("bpe_method_name = " + str(bpe_encoded_methodname))
-        print("bpe_body = " + str(bpe_encoded_method))
+        print("bpe_body = " + str(bpe_encoded_methodbody))
         
-        print(tokenizer.reformat_tokens(single_method['method_body']))
+        print(tokenizer.reformat_tokens(method_body))
         
-    # TODO: do some statistics on the tokens and on the java code, so selection of smaller datasets is possible
-    # TODO: save this into a bunch of json files
+        # do some calculations on the tokens and on the java code, so selection of smaller datasets is possible
+        bpe_encoded_method_body_length = len(bpe_encoded_methodbody)
+        bpe_encoded_method_name_length = len(bpe_encoded_methodname)
+        java_token_method_body_length = len(method_body)
+        
+        # TODO: save this into a bunch of json files
+        
     # TODO: find duplicate methodnames, rank them, maybe cleanup dataset
     # TODO: find bad methodnames
     # TODO: build learning pairs for bad and good namings -- challenge number 5
