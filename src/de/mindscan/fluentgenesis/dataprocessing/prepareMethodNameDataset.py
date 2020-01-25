@@ -131,10 +131,8 @@ def extract_methods_from_class( class_declaration, java_tokenlist ):
 
 def extract_allmethods_from_compilation_unit(compilation_unit_ast, java_tokenlist):
     all_methods = []
-    
-    # I guess it would be better to use a walker, which is able to find each class_declaration, instead of iterating over the class only 
-    for i in range(len(compilation_unit_ast.types)):
-        class_declaration = compilation_unit_ast.types[i]
+     
+    for class_declaration in  compilation_unit_ast.types:
         extracted_methods = extract_methods_from_class(class_declaration, java_tokenlist )
         all_methods.extend(extracted_methods)
         for single_method in extracted_methods:
