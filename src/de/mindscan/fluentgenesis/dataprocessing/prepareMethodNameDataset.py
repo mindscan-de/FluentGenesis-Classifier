@@ -31,6 +31,7 @@ from com.github.c2nes.javalang import tokenizer, parser, ast
 from com.github.c2nes.javalang.tree import ClassDeclaration
 
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
+from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 
 #
 # Process the compilation unit
@@ -121,8 +122,8 @@ def extract_methods_from_class( class_declaration, java_tokenlist ):
     collected_start_positions, collected_method_names = calculate_method_start_indexes_for_class(class_declaration)
     
     for index in range (len(collected_start_positions)):
-        method_for_index = extract_method( index, collected_start_positions, java_tokenlist)
-        method_dict_entry = {'method_body':method_for_index , 'method_name':collected_method_names[index]}
+        method_body = extract_method( index, collected_start_positions, java_tokenlist)
+        method_dict_entry = {'method_body':method_body , 'method_name':collected_method_names[index], 'class_name': class_declaration.name }
         
         extracted_methods.append(method_dict_entry)
     
@@ -135,9 +136,6 @@ def extract_allmethods_from_compilation_unit(compilation_unit_ast, java_tokenlis
     for class_declaration in  compilation_unit_ast.types:
         extracted_methods = extract_methods_from_class(class_declaration, java_tokenlist )
         all_methods.extend(extracted_methods)
-        for single_method in extracted_methods:
-            print("==["+single_method['method_name']+"]==")
-            print(tokenizer.reformat_tokens(single_method['method_body']))
     
     return all_methods
 
@@ -161,13 +159,26 @@ def runTokenizerForFile(filename):
         return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
     
 
-def process_source_file(some_source_filename):
+def process_source_file(some_source_filename, encoder):
     # Work on the source file
     java_tokenlist = runTokenizerForFile(some_source_filename)
     parsed_compilation_unit = parser.parse(java_tokenlist)
-    extract_allmethods_from_compilation_unit(parsed_compilation_unit, java_tokenlist)
-    # TODO: collect filenames, collect line numbers, methodnames, etc  
-    # TODO: encode body code and methodnames using the bpe-vocabulary
+    
+    # collect file names, line numbers, method names, class names etc  
+    all_methods_per_source = extract_allmethods_from_compilation_unit(parsed_compilation_unit, java_tokenlist)
+    
+    for single_method in all_methods_per_source:
+        print("==["+single_method['method_name']+" / "+single_method['class_name']+"]==")
+    
+        # encode body code and methodnames using the bpe-vocabulary
+        bpe_encoded_method = encoder.encode([x.value for x in single_method['method_body']])
+        bpe_encoded_methodname = encoder.encode( [ single_method['method_name'] ] )
+        
+        print("bpe_method_name = " + str(bpe_encoded_methodname))
+        print("bpe_body = " + str(bpe_encoded_method))
+        
+        print(tokenizer.reformat_tokens(single_method['method_body']))
+        
     # TODO: do some statistics on the tokens and on the java code, so selection of smaller datasets is possible
     # TODO: save this into a bunch of json files
     # TODO: find duplicate methodnames, rank them, maybe cleanup dataset
@@ -195,9 +206,12 @@ def doWork():
     # TODO: anonymous innter classes won't be recognized as ClassDeclaration / ClassCreator kann im Body auch methodendeklarationen enthalten
     # some_source_filename = dataset_directory+'emf\\plugins\\org.eclipse.emf.codegen\\src\\org\\eclipse\\emf\\codegen\\CodeGen.java'
     
-    process_source_file(some_source_filename)
+    model_vocabulary = model.load_tokens()
+    model_bpe_data = model.load_bpe_pairs()
     
-    print("Hello world!")
+    encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
+    
+    process_source_file(some_source_filename, encoder)
     pass
 
 if __name__ == '__main__':
