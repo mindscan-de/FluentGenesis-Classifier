@@ -16,6 +16,11 @@ class MethodDataset(object):
         '''
         pass
     
+    def prepareNewDataset(self):
+        pass
+    
+    def finish(self):
+        pass
         
     def add_method_data(self, params):
         print("==["+params['method_name']+" / "+params['method_class_name']+"]==")

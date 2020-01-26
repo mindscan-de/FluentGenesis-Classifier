@@ -228,9 +228,12 @@ def doWork():
     
     encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     
-    methdod_dataset = MethodDataset()
+    method_dataset = MethodDataset()
+    method_dataset.prepareNewDataset()
     
-    process_source_file(dataset_directory, some_source_filename, encoder, methdod_dataset)
+    process_source_file(dataset_directory, some_source_filename, encoder, method_dataset)
+    
+    method_dataset.finish()
     pass
 
 
