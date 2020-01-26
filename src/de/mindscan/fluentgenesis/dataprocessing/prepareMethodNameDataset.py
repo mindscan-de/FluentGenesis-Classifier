@@ -26,6 +26,7 @@ SOFTWARE.
 @author: Maxim Gansert, Mindscan
 '''
 import os
+import datetime
 
 from com.github.c2nes.javalang import tokenizer, parser, ast
 from com.github.c2nes.javalang.tree import ClassDeclaration
@@ -176,31 +177,69 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
     all_methods_per_source = extract_allmethods_from_compilation_unit(parsed_compilation_unit, java_tokenlist)
     
     for single_method in all_methods_per_source:
-        method_name = single_method['method_name']
-        method_class_name = single_method['class_name']
-        method_body = single_method['method_body']
+        try:
+            method_name = single_method['method_name']
+            method_class_name = single_method['class_name']
+            method_body = single_method['method_body']
+            
+            # encode body code and methodnames using the bpe-vocabulary
+            bpe_encoded_methodname = encoder.encode( [ method_name ] )
+            bpe_encoded_methodbody = encoder.encode([x.value for x in method_body])
+            
+            # do some calculations on the tokens and on the java code, so selection of smaller datasets is possible
+            bpe_encoded_method_name_length = len(bpe_encoded_methodname)
+            bpe_encoded_method_body_length = len(bpe_encoded_methodbody)
+            
+            # save this into dataset
+            method_data = { 
+                "source_file_path": source_file_path,
+                "method_class_name": method_class_name,
+                "method_name": method_name,
+                "encoded_method_name_length": bpe_encoded_method_name_length,
+                "encoded_method_name": bpe_encoded_methodname,
+                "encoded_method_body_length": bpe_encoded_method_body_length,
+                "encoded_method_body": bpe_encoded_methodbody,
+                "method_body": method_body 
+                }
+            dataset.add_method_data( method_data )
+        except:
+            pass
         
-        # encode body code and methodnames using the bpe-vocabulary
-        bpe_encoded_methodname = encoder.encode( [ method_name ] )
-        bpe_encoded_methodbody = encoder.encode([x.value for x in method_body])
+def walkFiles(path):
+    filenames = []
+    for root, _, files in os.walk(path):
+        for file_ in files:
+            if not file_.endswith(".java"):
+                continue
+            filenames.append(os.path.realpath(os.path.join(root, file_)))
+    return filenames
         
-        # do some calculations on the tokens and on the java code, so selection of smaller datasets is possible
-        bpe_encoded_method_name_length = len(bpe_encoded_methodname)
-        bpe_encoded_method_body_length = len(bpe_encoded_methodbody)
-        
-        # save this into dataset
-        method_data = { 
-            "source_file_path": source_file_path,
-            "method_class_name": method_class_name,
-            "method_name": method_name,
-            "encoded_method_name_length": bpe_encoded_method_name_length,
-            "encoded_method_name": bpe_encoded_methodname,
-            "encoded_method_body_length": bpe_encoded_method_body_length,
-            "encoded_method_body": bpe_encoded_methodbody,
-            "method_body": method_body 
-            }
-        dataset.add_method_data( method_data )
-     
+
+def process_all_source_files(dataset_directory, encoder, method_dataset):
+    time_at_start = datetime.datetime.now()
+
+    print( "===[ Start ]===")
+    print( "time at start: " + str(time_at_start))
+
+    filenames = walkFiles(dataset_directory)
+    
+    time_after_walkingfiles = datetime.datetime.now()
+    
+    print( "time after walking files: " + str(time_after_walkingfiles))
+
+    print( "===[ Encode ]===")
+    
+    for current_source_filename in filenames:
+        process_source_file('', current_source_filename, encoder, method_dataset)
+    
+    time_after_encoding = datetime.datetime.now()
+    
+    # print some statistics
+    print( "===[ The End ]===")
+    print( "time at start: " + str(time_at_start))
+    print( "time after walking files: " + str(time_after_walkingfiles))
+    print( "time when ready_encoding: " + str(time_after_encoding))
+
 
 def doWork():
     model = BPEModel("16K-full", "../bpe/")
@@ -230,7 +269,10 @@ def doWork():
     method_dataset = MethodDataset()
     method_dataset.prepareNewDataset(dataset_directory)
     
-    process_source_file(dataset_directory, some_source_filename, encoder, method_dataset)
+    # TODO: and now crawl the directory and process each file...
+    process_all_source_files(dataset_directory, encoder, method_dataset)
+    
+    # process_source_file(dataset_directory, some_source_filename, encoder, method_dataset)
     
     method_dataset.finish()
     pass
