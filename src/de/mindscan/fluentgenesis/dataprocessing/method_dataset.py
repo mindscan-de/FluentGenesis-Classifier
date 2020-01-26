@@ -25,7 +25,25 @@ SOFTWARE.
 
 @author: Maxim Gansert, Mindscan
 '''
-from com.github.c2nes.javalang import tokenizer
+
+import json
+import os
+
+# from com.github.c2nes.javalang import tokenizer
+
+#
+# Create, Save, Load and provide the MethodDataset 
+# ------------------------------------------------
+# Two Modes of operation:
+## First (write only / overwrite)
+### prepareNewDataset()
+### add_method_data()[]
+### finish()
+#
+## Second (read only) / maybe i will try a different approach like pandas/dataframe for loading.
+### loadPreparedDataset
+### provide an (resetable) iterator, so it can be iterated n/many times.
+##
 
 class MethodDataset(object):
     '''
@@ -36,19 +54,50 @@ class MethodDataset(object):
         '''
         Constructor
         '''
+        self.__dataset_name = 'methodDataset.jsonl'
+        self.__filehandle = None
         pass
     
-    def prepareNewDataset(self):
-        pass
+    def prepareNewDataset(self, dataset_directory):
+        fullFileName = os.path.join(dataset_directory, self.__dataset_name)
+        self.__filehandle = open(fullFileName,'w')
     
     def finish(self):
-        pass
+        if self.__filehandle is not None:
+            self.__filehandle.flush()
+            self.__filehandle.close()
         
     def add_method_data(self, params):
-        print("==["+params['method_name']+" / "+params['method_class_name']+"]==")
-        print("bpe_method_name["+str(params['encoded_method_name_length'])+"] = " + str(params['encoded_method_name']))
-        print("bpe_body["+str(params['encoded_method_body_length'])+"] = " + str(params['encoded_method_body']))
+        if self.__filehandle is None:
+            print("FileHandle Is None")
+            return
         
-        print(tokenizer.reformat_tokens(params['method_body']))
-        pass
+        method_entry = {
+            'file_name': params['source_file_path'],
+            'class_name': params['method_class_name'],
+            'method_name': params['method_name'],
+            'length_encoded_method_name': params['encoded_method_name_length'],
+            'encoded_method_name': params['encoded_method_name'],
+            'length_encoded_method_body': params['encoded_method_body_length'],
+            'encoded_method_body': params['encoded_method_body']
+            }
+        
+        try:
+            print("==["+params['method_name']+" / "+params['method_class_name']+"]==")
+            # print("bpe_method_name["+str(params['encoded_method_name_length'])+"] = " + str(params['encoded_method_name']))
+            # print("bpe_body["+str(params['encoded_method_body_length'])+"] = " + str(params['encoded_method_body']))
+            # print(tokenizer.reformat_tokens(params['method_body']))
+
+        except:
+            # in case we can not outut the class name or the method name
+            pass
+        
+        try:
+            json_string = json.dumps(method_entry)
+            self.__filehandle.write(json_string)
+            self.__filehandle.write("\n")
+        except:
+            # ignore errors, since we have millions of methods, we actually do not care yet.
+            pass
+        
     

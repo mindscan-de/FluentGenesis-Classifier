@@ -33,7 +33,7 @@ from com.github.c2nes.javalang.tree import ClassDeclaration
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 
-from .method_dataset import MethodDataset
+from method_dataset import MethodDataset
 
 #
 # Process the compilation unit
@@ -192,7 +192,6 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
         method_data = { 
             "source_file_path": source_file_path,
             "method_class_name": method_class_name,
-            "method_class_name": method_class_name,
             "method_name": method_name,
             "encoded_method_name_length": bpe_encoded_method_name_length,
             "encoded_method_name": bpe_encoded_methodname,
@@ -229,7 +228,7 @@ def doWork():
     encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     
     method_dataset = MethodDataset()
-    method_dataset.prepareNewDataset()
+    method_dataset.prepareNewDataset(dataset_directory)
     
     process_source_file(dataset_directory, some_source_filename, encoder, method_dataset)
     
