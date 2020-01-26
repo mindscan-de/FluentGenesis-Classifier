@@ -203,6 +203,7 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
                 }
             dataset.add_method_data( method_data )
         except:
+            # ignore problematic method
             pass
         
 def walkFiles(path):
@@ -230,7 +231,11 @@ def process_all_source_files(dataset_directory, encoder, method_dataset):
     print( "===[ Encode ]===")
     
     for current_source_filename in filenames:
-        process_source_file('', current_source_filename, encoder, method_dataset)
+        try:
+            process_source_file('', current_source_filename, encoder, method_dataset)
+        except:
+            # ignore files , which cause any problem - we can deal with them much later.
+            pass
     
     time_after_encoding = datetime.datetime.now()
     
