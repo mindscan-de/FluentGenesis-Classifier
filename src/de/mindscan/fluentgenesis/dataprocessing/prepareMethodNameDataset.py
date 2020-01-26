@@ -50,47 +50,36 @@ from method_dataset import MethodDataset
 # 5. process each method and add them to the dataset / process / encode
 # 6. add them into a dataprocessing unit and save to disk / should work with millions of methods, maybe save after 100k methods everytime.
 
-def extract_method_body ( tokens ):
-    collect_mode = False
-    extracted_body = []
-    depth = 0
-    for token in tokens:
-        # don't collect the last closing brace token...
-        if token.value is '}':
-            depth-=1
-            if depth is 0:
-                collect_mode=False
-                # break this loop, since all is done / we have more closing braces than opening braces.
-                break
-        
-        if collect_mode:
-            extracted_body.append(token)
-
-        # don't collect the first open brace token...
-        if token.value is '{':
-            depth+=1
-            collect_mode = True
-
-    return extracted_body
-
-
 def collect_method_tokens (index, collected_start_positions, java_tokenlist ):
     collect_method_tokens = False
-    collected_method_tokens = []
+    
+    collect_body_mode = False
+    extracted_body = []
+    depth = 0
+    
     
     for token in java_tokenlist:
         if token.position is collected_start_positions[index]:
             collect_method_tokens = True
-        if index+1 not in collected_start_positions:
-            pass
-        else:
-            if token.position is collected_start_positions[index+1]:
-                collect_method_tokens = False
             
         if collect_method_tokens is True:
-            collected_method_tokens.append(token)
+            # don't collect the last closing brace token...
+            if token.value is '}':
+                depth-=1
+                if depth is 0:
+                    collect_body_mode=False
+                    # break this loop, since all is done / we have more closing braces than opening braces.
+                    break
             
-    return collected_method_tokens
+            if collect_body_mode:
+                extracted_body.append(token)
+    
+            # don't collect the first open brace token...
+            if token.value is '{':
+                depth+=1
+                collect_body_mode = True
+            
+    return extracted_body
 
 
 def calculate_method_start_indexes_for_class( class_declaration ):
@@ -111,14 +100,8 @@ def calculate_method_start_indexes_for_class( class_declaration ):
     return collected_start_positions, collected_method_names
 
 
-# TODO: optimize this: because we will work on 2.1 million files, that must be fast
 def extract_method( method_index , collected_start_positions, java_tokenlist):
-    # ATTN: the start positions are off by the modifiers, ans start at the type signature.
-    # TODO: should be optimized into one method, since it is basically collecting a longer
-    #       list with "collect_method_teokens and then reducing it to a shorter version with 
-    #       "extract_method_body"
-    # rework token, extraction
-    return extract_method_body ( collect_method_tokens( method_index, collected_start_positions, java_tokenlist ) ) 
+    return collect_method_tokens( method_index, collected_start_positions, java_tokenlist ) 
 
 
 # Will extract the methods of a class
@@ -232,6 +215,7 @@ def process_all_source_files(dataset_directory, encoder, method_dataset):
     
     for current_source_filename in filenames:
         try:
+            print(current_source_filename)
             process_source_file('', current_source_filename, encoder, method_dataset)
         except:
             # ignore files , which cause any problem - we can deal with them much later.
