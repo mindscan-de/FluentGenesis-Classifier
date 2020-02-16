@@ -62,6 +62,30 @@ class MethodDataset(object):
         fullFileName = os.path.join(dataset_directory, self.__dataset_name)
         self.__filehandle = open(fullFileName,'w')
     
+    def loadDataset(self, dataset_directory):
+        fullFileName = os.path.join(dataset_directory, self.__dataset_name)
+        self.__filehandle = open(fullFileName,'r')
+        
+    def read_next_method_data(self):
+        if self.__filehandle is None:
+            print("FielHandle is None")
+            return
+        
+        #try:
+        # eine Zeile lesen, diese Zeile, anschlieﬂend JSon deserialisieren
+        line = self.__filehandle.readline()
+        if not line:
+            return None
+        
+        if line is "\n":
+            return None
+        
+        #return line
+        #json_string = line.decode("utf-8")
+        return json.loads(line)
+        #except:
+        #    pass
+    
     def finish(self):
         if self.__filehandle is not None:
             self.__filehandle.flush()
@@ -69,7 +93,7 @@ class MethodDataset(object):
         
     def add_method_data(self, params):
         if self.__filehandle is None:
-            print("FileHandle Is None")
+            print("FileHandle is None")
             return
         
         method_entry = {
