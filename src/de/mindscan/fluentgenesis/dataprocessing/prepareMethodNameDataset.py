@@ -34,7 +34,8 @@ from com.github.c2nes.javalang.tree import ClassDeclaration
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 
-from method_dataset import MethodDataset
+from method_dataset import MethodDataset  # @UnresolvedImport
+
 
 #
 # Process the compilation unit
