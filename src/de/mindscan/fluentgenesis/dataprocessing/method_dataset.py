@@ -66,9 +66,38 @@ class MethodDataset(object):
         fullFileName = os.path.join(dataset_directory, self.__dataset_name)
         self.__filehandle = open(fullFileName,'r')
         
+    def loadFilterSaveDataset(self, dataset_directory, applyfilter, output_suffix):
+        fullFileName = os.path.join(dataset_directory, self.__dataset_name)
+        fullOutFileName = os.path.join(dataset_directory+output_suffix, self.__dataset_name)
+        
+        self.__filehandle = open(fullFileName,'r')
+        
+        number_of_methods = 0;
+        number_of_filtered_methods = 0
+        
+        with open(fullOutFileName,"w") as outputhandle:
+            
+            line, method_data = self._read_next_method_dataInternal()
+            
+            while method_data is not None:
+                number_of_methods = number_of_methods + 1
+                
+                if number_of_methods % (256*1024) is 0:
+                    print(str(number_of_methods / 1024) + "k methoden gefiltert.")
+            
+                # save the particular dataset to disk
+                if applyfilter(method_data):
+                    number_of_filtered_methods = number_of_filtered_methods + 1
+                    # save the line to file... in different directory...
+                    outputhandle.write(line)
+                    
+                line, method_data = self._read_next_method_dataInternal()
+        
+        print("processed "+str(number_of_methods)+ " # methods matching filter "+ str( number_of_filtered_methods))
+        
     def read_next_method_data(self):
         if self.__filehandle is None:
-            print("FielHandle is None")
+            print("FileHandle is None")
             return
         
         #try:
@@ -83,6 +112,26 @@ class MethodDataset(object):
         #return line
         #json_string = line.decode("utf-8")
         return json.loads(line)
+        #except:
+        #    pass
+    
+    def _read_next_method_dataInternal(self):
+        if self.__filehandle is None:
+            print("FileHandle is None")
+            return
+        
+        #try:
+        # eine Zeile lesen, diese Zeile, anschlieﬂend JSon deserialisieren
+        line = self.__filehandle.readline()
+        if not line:
+            return None, None
+        
+        if line is "\n":
+            return line, None
+        
+        #return line
+        #json_string = line.decode("utf-8")
+        return line, json.loads(line)
         #except:
         #    pass
     
