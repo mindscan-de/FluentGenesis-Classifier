@@ -242,13 +242,13 @@ def doWork():
     # some_source_filename = 'java_projects\\Algorithms\\src\\org\\rekdev\\trees\\BinaryTreeNode.java'
     
     # has multiple classes parallel in one compilation unit
-    some_source_filename = 'java_projects\\CSSMin\\CSSMin.java'
+    # some_source_filename = 'java_projects\\CSSMin\\CSSMin.java'
     
     # nested classes
     # some_source_filename = 'java_projects\\cvs-plugin\\\src\\\main\\\java\\\hudson\\\scm\\CVSChangeLogSet.java'
 
     # inner and/or anonymous classes
-    # TODO: anonymous innter classes won't be recognized as ClassDeclaration / ClassCreator kann im Body auch methodendeklarationen enthalten
+    # TODO: anonymous inner classes won't be recognized as ClassDeclaration / ClassCreator kann im Body auch methodendeklarationen enthalten
     # some_source_filename = 'java_projects\\emf\\plugins\\org.eclipse.emf.codegen\\src\\org\\eclipse\\emf\\codegen\\CodeGen.java'
     
     model_vocabulary = model.load_tokens()
@@ -259,10 +259,8 @@ def doWork():
     method_dataset = MethodDataset()
     method_dataset.prepareNewDataset(dataset_directory)
     
-    # TODO: and now crawl the directory and process each file...
+    # now crawl the directory and process each file...
     process_all_source_files(dataset_directory, encoder, method_dataset)
-    
-    # process_source_file(dataset_directory, some_source_filename, encoder, method_dataset)
     
     method_dataset.finish()
     pass
