@@ -85,9 +85,43 @@ class DL4jModifiedEmbeddings(object):
             decoded_word = self.decode_synthetic_word(b64decoded_word)
             decoded_index = int(decoded_word)
         
-        # decode value (embedding)
+        # decode values (embedding-vector)
         embedding = np.array([float(val) for val in splitLine[1:]])
         
         return decoded_index, embedding
+    
+    
+    def load_embeddings_dictionary(self, embedding_file_path ):
+        emb_weights_dictionary = {}
+        with open(embedding_file_path,'r') as f:
+            # parse the heading / contains number of elements and number of dimensions,
+            # as well as the number of processed sentences
+            
+            # skip header line 
+            _ = f.readline()
+            
+            # parse the embedding data
+            for line in f:
+                decoded_index, embedding = self.decode_embedding_line(line)
+                emb_weights_dictionary[decoded_index] = embedding
+                
+            f.close()
+            
+        return emb_weights_dictionary
 
+
+    def load_embeddings_array(self, FULL_VOCABULARY_LENGTH, embedding_file_path):
+        # the weights dictonary is incomplete and is unsorted        
+        weights_dictionary = self.load_embeddings_dictionary(embedding_file_path)
+        
+        orderedWeights = []
+        for row in range(0, FULL_VOCABULARY_LENGTH):
+            if row in weights_dictionary:
+                orderedWeights.append(weights_dictionary[row])
+            else:
+                # print("weights for '"+str(row)+"' are replicated from the unknown vector")
+                # replicate the unknown word vector to
+                orderedWeights.append(weights_dictionary[0])
+        
+        return np.asarray(orderedWeights, dtype=np.float32)
         
