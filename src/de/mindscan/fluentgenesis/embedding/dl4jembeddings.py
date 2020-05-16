@@ -25,6 +25,8 @@ SOFTWARE.
 
 @author: Maxim Gansert, Mindscan
 '''
+import base64
+import numpy as np
 
 class DL4jModifiedEmbeddings(object):
     '''
@@ -66,7 +68,26 @@ class DL4jModifiedEmbeddings(object):
         for index in range(0,len(synthetic_word)):
             result = result+self.substituton_dictionary[synthetic_word[index]]
         return result
+    
+    
+    def decode_embedding_line(self, line):
+        splitLine = line.split()
         
+        # decode key
+        b64encoded_word = splitLine[0].split(':')[1]
+        b64decoded_word = base64.b64decode(b64encoded_word).decode('utf-8')
         
+        # handle the UNKNOWN
+        if b64decoded_word == 'UNK':
+            decoded_word='<UNK>'
+            decoded_index = 0
+        else:
+            decoded_word = self.decode_synthetic_word(b64decoded_word)
+            decoded_index = int(decoded_word)
+        
+        # decode value (embedding)
+        embedding = np.array([float(val) for val in splitLine[1:]])
+        
+        return decoded_index, embedding
 
         
