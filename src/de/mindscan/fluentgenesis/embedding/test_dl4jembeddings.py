@@ -130,7 +130,7 @@ class Test(unittest.TestCase):
         #assert
         assertThat( result ).is_nuple(512)
 
-    def testDecodeEmbeddingLine_TheUnknownEmbedding1_expectDecodedIndexIsNotZero(self):
+    def testDecodeEmbeddingLine_Embedding47_expectDecodedIndexIsNotZero(self):
         # arrange
         embedding = dl4jembeddings.DL4jModifiedEmbeddings()
         
@@ -140,7 +140,7 @@ class Test(unittest.TestCase):
         #assert
         assertThat( result ).is_not_zero()
     
-    def testDedodeEmbeddingLine_TheUnknownEmbedding1_expectHasOneDimension(self):
+    def testDedodeEmbeddingLine_Embedding47_expectHasOneDimension(self):
         # arrange
         embedding = dl4jembeddings.DL4jModifiedEmbeddings()
         
@@ -151,7 +151,7 @@ class Test(unittest.TestCase):
         assertThat( result ).has_dimensionality(1)
     
     
-    def testDedodeEmbeddingLine_TheUnknownEmbedding1_expectSizeOfEmbeddigIs512(self):
+    def testDedodeEmbeddingLine_Embedding47_expectSizeOfEmbeddigIs512(self):
         # arrange
         embedding = dl4jembeddings.DL4jModifiedEmbeddings()
         
