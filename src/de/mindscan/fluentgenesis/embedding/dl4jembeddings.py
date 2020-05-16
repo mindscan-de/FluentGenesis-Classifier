@@ -38,12 +38,35 @@ class DL4jModifiedEmbeddings(object):
     which does not occur standalone. This has to be accounted for. The current solution is to replicate the unknown
     word embedding vector for these missing words, in case that these indexes will be used later during training.
     
-    Also it is important, that these embeddings can be used by tensorflow + keras. 
+    Also it is important, that these embeddings can be used by tensorflow + keras.
+    
+    Also important note that the dl4j embeddings are sorted by occurence, to make search more effective.
     '''
 
 
-    def __init__(self, params):
+    def __init__(self):
         '''
         Constructor
         '''
+        self.init_synthetic_word_decoder()
+    
+    
+    def init_synthetic_word_decoder(self):
+        keys =   'abcdefghij'
+        values = '0123456789'
+        
+        self.substituton_dictionary={}
+        for i in range(0,10):
+            self.substituton_dictionary[keys[i]] = values[i]
+            
+    
+    '''Chosen not to do a regex or other replacement or translation solution. this is good enough'''
+    def decode_synthetic_word(self, synthetic_word):
+        result = ''
+        for index in range(0,len(synthetic_word)):
+            result = result+self.substituton_dictionary[synthetic_word[index]]
+        return result
+        
+        
+
         
