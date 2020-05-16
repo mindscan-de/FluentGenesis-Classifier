@@ -42,7 +42,8 @@ class DL4jModifiedEmbeddings(object):
     
     Also it is important, that these embeddings can be used by tensorflow + keras.
     
-    Also important note that the dl4j embeddings are sorted by occurence, to make search more effective.
+    Also important note that the dl4j embeddings are sorted by occurence, to make search more effective. For tensorflow
+    these tokens are reordered again, so that the order of the embeddings matches that of the BPE-tokens. 
     '''
 
 
@@ -86,7 +87,7 @@ class DL4jModifiedEmbeddings(object):
             decoded_index = int(decoded_word)
         
         # decode values (embedding-vector)
-        embedding = np.array([float(val) for val in splitLine[1:]])
+        embedding = np.array([float(val) for val in splitLine[1:]], dtype=np.float32)
         
         return decoded_index, embedding
     
