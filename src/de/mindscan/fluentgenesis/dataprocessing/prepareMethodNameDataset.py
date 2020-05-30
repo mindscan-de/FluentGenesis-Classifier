@@ -28,106 +28,16 @@ SOFTWARE.
 import os
 import datetime
 
-from com.github.c2nes.javalang import tokenizer, parser, ast
+from com.github.c2nes.javalang import parser,ast
 from com.github.c2nes.javalang.tree import ClassDeclaration
+
 
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 
 from method_dataset import MethodDataset  # @UnresolvedImport
 
-
-#
-# Process the compilation unit
-# ----------------------------
-# 1. Tokenize the compilation unit
-# 2. Find all classes in compilation unit 
-##   Later
-##   N2H - (interfaces and their default implementation)
-##   N2H - (process more classes in a compilation unit (side by side)
-# 3. Find/collect all classes in main-compilation unit class
-##   Work through inner classes and work through methods
-# 4. find methods for each class from previous step
-# 5. process each method and add them to the dataset / process / encode
-# 6. add them into a dataprocessing unit and save to disk / should work with millions of methods, maybe save after 100k methods everytime.
-
-def collect_method_tokens (index, collected_start_positions, java_tokenlist ):
-    collect_method_tokens = False
-    
-    collect_body_mode = False
-    extracted_body = []
-    depth = 0
-    
-    
-    for token in java_tokenlist:
-        if token.position is collected_start_positions[index]:
-            collect_method_tokens = True
-            
-        if collect_method_tokens is True:
-            # don't collect the last closing brace token...
-            if token.value is '}':
-                depth-=1
-                if depth is 0:
-                    collect_body_mode=False
-                    # break this loop, since all is done / we have more closing braces than opening braces.
-                    break
-            
-            if collect_body_mode:
-                extracted_body.append(token)
-    
-            # don't collect the first open brace token...
-            if token.value is '{':
-                depth+=1
-                collect_body_mode = True
-            
-    return extracted_body
-
-
-def calculate_method_start_indexes_for_class( class_declaration ):
-    collected_start_positions = []
-    collected_method_names = []
-
-    for j in range(len(class_declaration.methods)):
-        # print("-- Methodname --")
-        # print ( compilation_unit_ast.types[i].methods[j].name )
-        # print("-- position of method --")
-        # print (compilation_unit_ast.types[i].methods[j].position )
-        # print (compilation_unit_ast.types[i].methods[j].modifiers)
-        collected_start_positions.append(class_declaration.methods[j].position)
-        collected_method_names.append(class_declaration.methods[j].name)
-        # print("-- Body of method --")
-        # print ( compilation_unit_ast.types[i].methods[j].body )
-
-    return collected_start_positions, collected_method_names
-
-
-def extract_method( method_index , collected_start_positions, java_tokenlist):
-    return collect_method_tokens( method_index, collected_start_positions, java_tokenlist ) 
-
-
-# Will extract the methods of a class
-def extract_methods_from_class( class_declaration, java_tokenlist ):
-    extracted_methods = []
-    
-    collected_start_positions, collected_method_names = calculate_method_start_indexes_for_class(class_declaration)
-    
-    for index in range (len(collected_start_positions)):
-        method_body = extract_method( index, collected_start_positions, java_tokenlist)
-        method_dict_entry = {'method_body':method_body , 'method_name':collected_method_names[index], 'class_name': class_declaration.name }
-        
-        extracted_methods.append(method_dict_entry)
-    
-    return extracted_methods
-
-
-def extract_allmethods_from_compilation_unit(compilation_unit_ast, java_tokenlist):
-    all_methods = []
-     
-    for class_declaration in  compilation_unit_ast.types:
-        extracted_methods = extract_methods_from_class(class_declaration, java_tokenlist )
-        all_methods.extend(extracted_methods)
-    
-    return all_methods
+from de.mindscan.fluentgenesis.dataprocessing.method_extractor import tokenize_file, extract_allmethods_from_compilation_unit
 
 
 def extract_classes_from_compilation_unit(compilation_unit_ast):
@@ -140,13 +50,6 @@ def extract_classes_from_compilation_unit(compilation_unit_ast):
     [ print(clazz.name) for clazz in classes ]
     print (classes)
     return classes
-
-
-def runTokenizerForFile(filename):
-    with open(filename,"rb") as current_source_file:
-        all_lines_as_string = map(lambda line: line.decode('utf-8'), current_source_file.readlines()[0:])
-        current_source_code = "".join(all_lines_as_string) 
-        return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
     
 
 def process_source_file(dataset_directory, source_file_path, encoder, dataset):
@@ -154,7 +57,7 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
     full_source_file_path = os.path.join( dataset_directory, source_file_path);
     
     # Work on the source file
-    java_tokenlist = runTokenizerForFile(full_source_file_path)
+    java_tokenlist = tokenize_file(full_source_file_path)
     parsed_compilation_unit = parser.parse(java_tokenlist)
     
     # collect file names, line numbers, method names, class names etc  
