@@ -159,7 +159,7 @@ def doWork():
     
     encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     
-    method_dataset = MethodDataset()
+    method_dataset = MethodDataset(dataset_name = 'methodDataset.jsonl')
     method_dataset.prepareNewDataset(dataset_directory)
     
     # now crawl the directory and process each file...
