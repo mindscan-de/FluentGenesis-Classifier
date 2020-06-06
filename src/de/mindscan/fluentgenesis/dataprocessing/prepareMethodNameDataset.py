@@ -39,7 +39,7 @@ from method_dataset import MethodDataset  # @UnresolvedImport
 
 from de.mindscan.fluentgenesis.dataprocessing.method_extractor import tokenize_file, extract_allmethods_from_compilation_unit
 
-
+# This following method is an attempt to identify classes in classes and classes in methods. - Is not used at the moment.
 def extract_classes_from_compilation_unit(compilation_unit_ast):
     classes = []
 
