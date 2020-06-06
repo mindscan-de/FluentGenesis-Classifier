@@ -52,8 +52,8 @@ def walkFiles(path):
     return filenames
 
 
-def runTokenizerForFile(filename):
-    with open(filename,"rb") as current_source_file:
+def tokenize_file(source_code_filename):
+    with open(source_code_filename,"rb") as current_source_file:
         all_lines_as_string = map(lambda line: line.decode('utf-8'), current_source_file.readlines()[0:])
         current_source_code = "".join(all_lines_as_string) 
         return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
@@ -76,7 +76,7 @@ def build_bpe_encoded_corpus_file(source_filename, bpe_encoder, model):
     bpe_content['bpeModel'] = model.get_model_name()
     
     try:
-        tokenlist = runTokenizerForFile(source_filename)
+        tokenlist = tokenize_file(source_filename)
         java_tokens = [x.value for x in tokenlist]
         # TODO: later use each line... and encode it for itself
         
