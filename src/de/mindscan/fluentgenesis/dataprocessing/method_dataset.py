@@ -50,11 +50,11 @@ class MethodDataset(object):
     classdocs
     '''
 
-    def __init__(self, params=None):
+    def __init__(self, dataset_name = None):
         '''
         Constructor
         '''
-        self.__dataset_name = 'methodDataset.jsonl'
+        self.__dataset_name = 'methodDataset.jsonl' if dataset_name is  None else dataset_name 
         self.__filehandle = None
         pass
     
