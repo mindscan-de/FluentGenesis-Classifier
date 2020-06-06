@@ -56,8 +56,8 @@ def get_lexeme_pairs(word):
 ## update global statistics
 # save global statistics
 
-def runTokenizerForFile(filename):
-    with open(filename,"rb") as current_source_file:
+def tokenize_file(source_code_filename):
+    with open(source_code_filename,"rb") as current_source_file:
         all_lines_as_string = map(lambda line: line.decode('utf-8'), current_source_file.readlines()[0:])
         current_source_code = "".join(all_lines_as_string) 
         return list(tokenizer.tokenize(current_source_code, ignore_errors=False))
@@ -832,7 +832,7 @@ def run_me(model):
                 print("tokenizing :'"+filename+"'")
                 
                 # all tokens in serialized form for this file
-                tokens_for_file = runTokenizerForFile(filename)
+                tokens_for_file = tokenize_file(filename)
                 
                 # all tokens aggregated
                 aggregated_tokenoccurence_for_file = calculateTokenOccurence(tokens_for_file)
