@@ -206,7 +206,17 @@ class SimpleBPEEncoder(object):
         # return indexes for the embeddings
         return encoded_tokens
 
-
+    def encode_multi_line(self, multi_line_tokens):
+        '''
+        Encode an array of a list of tokens_in_line
+        '''
+        encoded_lines = []
+        
+        for line in multi_line_tokens:
+            tokens_in_line = self.encode(line)
+            encoded_lines.append(tokens_in_line)
+            
+        return encoded_lines
 
     def decode(self, tokens):
         '''
