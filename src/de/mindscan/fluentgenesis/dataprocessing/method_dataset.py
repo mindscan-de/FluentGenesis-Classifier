@@ -152,7 +152,9 @@ class MethodDataset(object):
             'length_encoded_method_name': params['encoded_method_name_length'],
             'encoded_method_name': params['encoded_method_name'],
             'length_encoded_method_body': params['encoded_method_body_length'],
-            'encoded_method_body': params['encoded_method_body']
+            'encoded_method_body': params['encoded_method_body'],
+            'length_encoded_method_sign': params['encoded_method_sign_length'],
+            'encoded_method_sign': params['encoded_method_sign']
             }
         
         try:
