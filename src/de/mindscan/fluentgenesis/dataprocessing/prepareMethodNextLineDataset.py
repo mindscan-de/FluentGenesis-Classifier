@@ -35,7 +35,7 @@ from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 from de.mindscan.fluentgenesis.dataprocessing.method_dataset import MethodDataset
 from de.mindscan.fluentgenesis.dataprocessing.method_extractor import tokenize_file, extract_allmethods_from_compilation_unit
 
-
+# this might be a bad implementation, but it is good enough
 def split_methodbody_into_multiple_lines(method_body):
     result = []
     current_line_number = -1
@@ -71,16 +71,19 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
             method_name = single_method['method_name']
             method_class_name = single_method['class_name']
             method_body = single_method['method_body']
+            method_signature = single_method['method_signature']
             
             multi_line_body = split_methodbody_into_multiple_lines(method_body)
             
             # encode body code and methodnames using the bpe-vocabulary
             bpe_encoded_methodname = encoder.encode( [ method_name ] )
             bpe_encoded_methodbody_ml = encoder.encode_multi_line( multi_line_body )
+            bpe_encoded_signature = encoder.encode ( [ token.value for token in method_signature ] )
             
             # do some calculations on the tokens and on the java code, so selection of smaller datasets is possible
             bpe_encoded_method_name_length = len(bpe_encoded_methodname)
             bpe_encoded_method_body_length = sum([len(line) for line in bpe_encoded_methodbody_ml])
+            bpe_encoded_method_sig_length = len(bpe_encoded_signature)
             
             # save this into dataset
             method_data = { 
@@ -91,6 +94,8 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
                 "encoded_method_name": bpe_encoded_methodname,
                 "encoded_method_body_length": bpe_encoded_method_body_length,
                 "encoded_method_body": bpe_encoded_methodbody_ml,
+                "encoded_method_sign_length": bpe_encoded_method_sig_length,
+                "encoded_method_sign": bpe_encoded_signature,
                 "method_body": method_body 
                 }
             dataset.add_method_data( method_data )

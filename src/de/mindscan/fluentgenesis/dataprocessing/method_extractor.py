@@ -50,14 +50,17 @@ from com.github.c2nes.javalang import tokenizer
 # but the sourcecode processed teaches otherwise.
 def collect_method_tokens (index, collected_start_positions, java_tokenlist ):
     collect_method_tokens_enabled = False
+    collect_signature_tokens_enabled = False
     
     collect_body_mode = False
     extracted_body = []
+    extracted_signature = []
     depth = 0    
     
     for token in java_tokenlist:
         if token.position is collected_start_positions[index]:
             collect_method_tokens_enabled = True
+            collect_signature_tokens_enabled = True
             
         if collect_method_tokens_enabled is True:
             # don't collect the last closing brace token...
@@ -71,12 +74,17 @@ def collect_method_tokens (index, collected_start_positions, java_tokenlist ):
             if collect_body_mode:
                 extracted_body.append(token)
     
-            # don't collect the first open brace token... / append is done before.
+            # don't collect the first open brace token... / append is done before. / disable signature collection
             if token.value is '{':
                 depth+=1
                 collect_body_mode = True
+                collect_signature_tokens_enabled = False
+
+            # collect the signature when before the method body, but we don't want to collect the '{' token.
+            if collect_signature_tokens_enabled is True:
+                extracted_signature.append(token)
             
-    return extracted_body
+    return extracted_body, extracted_signature
 
 
 def calculate_method_start_indexes_for_class( class_declaration ):
@@ -108,8 +116,8 @@ def extract_methods_from_class( class_declaration, java_tokenlist ):
     collected_start_positions, collected_method_names = calculate_method_start_indexes_for_class(class_declaration)
     
     for index in range (len(collected_start_positions)):
-        method_body = extract_method( index, collected_start_positions, java_tokenlist)
-        method_dict_entry = {'method_body':method_body , 'method_name':collected_method_names[index], 'class_name': class_declaration.name }
+        method_body, method_signature = extract_method( index, collected_start_positions, java_tokenlist)
+        method_dict_entry = {'method_body':method_body , 'method_name':collected_method_names[index], 'method_signature': method_signature, 'class_name': class_declaration.name }
         
         extracted_methods.append(method_dict_entry)
     
