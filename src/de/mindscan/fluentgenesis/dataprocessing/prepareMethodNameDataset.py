@@ -68,14 +68,17 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
             method_name = single_method['method_name']
             method_class_name = single_method['class_name']
             method_body = single_method['method_body']
+            method_signature = single_method['method_signature']
             
             # encode body code and methodnames using the bpe-vocabulary
             bpe_encoded_methodname = encoder.encode( [ method_name ] )
             bpe_encoded_methodbody = encoder.encode([x.value for x in method_body])
+            bpe_encoded_methodsignature = encoder.encode([x.value for x in method_signature])
             
             # do some calculations on the tokens and on the java code, so selection of smaller datasets is possible
             bpe_encoded_method_name_length = len(bpe_encoded_methodname)
             bpe_encoded_method_body_length = len(bpe_encoded_methodbody)
+            bpe_encoded_method_signature_length = len(bpe_encoded_methodsignature)
             
             # save this into dataset
             method_data = { 
@@ -86,6 +89,8 @@ def process_source_file(dataset_directory, source_file_path, encoder, dataset):
                 "encoded_method_name": bpe_encoded_methodname,
                 "encoded_method_body_length": bpe_encoded_method_body_length,
                 "encoded_method_body": bpe_encoded_methodbody,
+                "encoded_method_sign_length": bpe_encoded_method_signature_length,
+                "encoded_method_sign": bpe_encoded_methodsignature,
                 "method_body": method_body 
                 }
             dataset.add_method_data( method_data )
@@ -169,9 +174,7 @@ def doWork():
     pass
 
 
-# TODO: the following things are part of the exploration of the resulting dataset        
-# TODO: find duplicate methodnames, rank them, maybe cleanup dataset
-# TODO: find bad methodnames
+# TODO: the following things are part of the exploration of the resulting dataset
 # TODO: build learning pairs for bad and good namings -- challenge number 5
 if __name__ == '__main__':
     doWork()
