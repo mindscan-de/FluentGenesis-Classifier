@@ -164,4 +164,6 @@ class Test(unittest.TestCase):
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testDecodeSyntheticWord_Empty_expectEmpty']
-    unittest.main()
+    # unittest.main()
+    import xmlrunner
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='test-reports'))
