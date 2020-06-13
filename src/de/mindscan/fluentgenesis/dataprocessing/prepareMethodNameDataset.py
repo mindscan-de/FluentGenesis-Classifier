@@ -35,8 +35,7 @@ from com.github.c2nes.javalang.tree import ClassDeclaration
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 
-from method_dataset import MethodDataset  # @UnresolvedImport
-
+from de.mindscan.fluentgenesis.dataprocessing.method_dataset import MethodDataset
 from de.mindscan.fluentgenesis.dataprocessing.method_extractor import tokenize_file, extract_allmethods_from_compilation_unit
 
 # This following method is an attempt to identify classes in classes and classes in methods. - Is not used at the moment.
