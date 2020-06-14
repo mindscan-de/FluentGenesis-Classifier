@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.python.pydev.debug.regularLaunchConfigurationType">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/FluentGenesis-Classifier/src/de/mindscan/fluentgenesis/dataprocessing/prepareMethodNextLineDataset.py"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:FluentGenesis-Classifier/src/de/mindscan/fluentgenesis/dataprocessing/prepareMethodNextLineDataset.py}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_OTHER_WORKING_DIRECTORY" value="${workspace_loc:FluentGenesis-Classifier/src/de/mindscan/fluentgenesis/dataprocessing}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="--dataset-dir=&quot;D:/Downloads/Big-Code-full/&quot; --bpe-model-dir=&quot;${workspace_loc}\src\de\mindscan\fluentgenesis\bpe\&quot; --bpe-model=&quot;16K-full&quot;"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:FluentGenesis-Classifier/src/de/mindscan/fluentgenesis/dataprocessing}"/>
+<stringAttribute key="org.python.pydev.debug.ATTR_INTERPRETER" value="__default"/>
+<stringAttribute key="org.python.pydev.debug.ATTR_PROJECT" value="FluentGenesis-Classifier"/>
+<intAttribute key="org.python.pydev.debug.ATTR_RESOURCE_TYPE" value="1"/>
+<stringAttribute key="process_factory_id" value="org.python.pydev.debug.processfactory.PyProcessFactory"/>
+</launchConfiguration>
