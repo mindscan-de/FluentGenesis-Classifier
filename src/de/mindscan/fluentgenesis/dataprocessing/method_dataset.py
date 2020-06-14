@@ -158,7 +158,8 @@ class MethodDataset(object):
             }
         
         try:
-            print("==["+params['method_name']+" / "+params['method_class_name']+"]==")
+            pass
+            # print("==["+params['method_name']+" / "+params['method_class_name']+"]==")
             # print("bpe_method_name["+str(params['encoded_method_name_length'])+"] = " + str(params['encoded_method_name']))
             # print("bpe_body["+str(params['encoded_method_body_length'])+"] = " + str(params['encoded_method_body']))
             # print(tokenizer.reformat_tokens(params['method_body']))

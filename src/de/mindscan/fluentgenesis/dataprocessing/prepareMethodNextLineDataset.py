@@ -27,6 +27,7 @@ SOFTWARE.
 '''
 import os
 import datetime
+import argparse
 
 from com.github.c2nes.javalang import parser
 
@@ -144,11 +145,11 @@ def process_all_source_files(dataset_directory, encoder, method_dataset):
     print( "time when ready_encoding: " + str(time_after_encoding))
 
 
-def doWork():
-    model = BPEModel("16K-full", "../bpe/")
+def doWork(bpe_model_name, bpe_directory, dataset_directory):
+    model = BPEModel(bpe_model_name, bpe_directory)
     model.load_hparams()
     
-    dataset_directory = 'D:\\Downloads\\Big-Code-full\\'
+    # dataset_directory = 'D:\\Downloads\\Big-Code-full\\'
     # dataset_directory = 'D:\\Downloads\\Big-Code-excerpt\\'
     # dataset_directory = model.get_data_source_path()
     
@@ -181,5 +182,19 @@ def doWork():
 
 
 if __name__ == '__main__':
-    doWork()
+    
+    parser = argparse.ArgumentParser(description='Create the method "NextLine"-Dataset.')
+    
+    parser.add_argument('--dataset-dir', dest='dataset_directory', help='Path to the dataset (must include tailing directory separators)', default='D:\\Downloads\\Big-Code-excerpt\\' )
+    parser.add_argument('--bpe-model-dir', dest='bpe_model_directory', help='Path to the BPE directory containing the Model folder', default='../bpe/')
+    parser.add_argument('--bpe-model', dest='bpe_model', help='the BPE-Model to use e.g. "16K-full"', default='16K-full')
+    
+    ## TODO: outputfilename "methodNextLineDataset.jsonl"
+    
+    args = parser.parse_args()
+    
+    print(args)
+    
+    doWork(bpe_model_name=args.bpe_model, bpe_directory=args.bpe_model_directory, dataset_directory=args.dataset_directory)
+    
     pass
