@@ -145,7 +145,7 @@ def process_all_source_files(dataset_directory, encoder, method_dataset):
     print( "time when ready_encoding: " + str(time_after_encoding))
 
 
-def doWork(bpe_model_name, bpe_directory, dataset_directory):
+def doWork(bpe_model_name, bpe_directory, dataset_directory, output_filename):
     model = BPEModel(bpe_model_name, bpe_directory)
     model.load_hparams()
     
@@ -171,7 +171,7 @@ def doWork(bpe_model_name, bpe_directory, dataset_directory):
     
     encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     
-    method_dataset = MethodDataset(dataset_name='methodNextLineDataset.jsonl')
+    method_dataset = MethodDataset(dataset_name=output_filename)
     method_dataset.prepareNewDataset(dataset_directory)
     
     # now crawl the directory and process each file...
@@ -188,13 +188,15 @@ if __name__ == '__main__':
     parser.add_argument('--dataset-dir', dest='dataset_directory', help='Path to the dataset (must include tailing directory separators)', default='D:\\Downloads\\Big-Code-excerpt\\' )
     parser.add_argument('--bpe-model-dir', dest='bpe_model_directory', help='Path to the BPE directory containing the Model folder', default='../bpe/')
     parser.add_argument('--bpe-model', dest='bpe_model', help='the BPE-Model to use e.g. "16K-full"', default='16K-full')
-    
-    ## TODO: outputfilename "methodNextLineDataset.jsonl"
+    parser.add_argument('--output-filename', dest='output_name', help='the filename fo the jsonl-output', default='methodNextLineDataset.jsonl')
     
     args = parser.parse_args()
     
     print(args)
     
-    doWork(bpe_model_name=args.bpe_model, bpe_directory=args.bpe_model_directory, dataset_directory=args.dataset_directory)
+    doWork(bpe_model_name = args.bpe_model, 
+           bpe_directory = args.bpe_model_directory, 
+           dataset_directory = args.dataset_directory, 
+           output_filename = args.output_name )
     
     pass
