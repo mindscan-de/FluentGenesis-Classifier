@@ -39,7 +39,7 @@ class Prediction(BaseModel):
     
 @app.get("/")
 def read_root():
-    return {"Hello":"World!"}
+    return {"message":"Hello World! It works!"}
 
 #@app.post("/predictMethodNames/{maxCount}")
 #async def predict_method_name( maxCount:int=5, methodBody: str = Form(...), className: str=Form(...)):
@@ -59,5 +59,5 @@ async def predict_method_name( max_count:int=5):
               'createId', 'toString', 'toName', 'convertName', 'convert','neverRETURNThis']
     
     # return array of k method names
-    return { 'predicted' : result[:max_count] }
+    return result[:max_count]
     
