@@ -25,39 +25,52 @@ SOFTWARE.
 
 @author: JohnDoe
 '''
+import sys
+sys.path.insert(0,'../../../../../src')
+
+import random
 
 from fastapi import FastAPI, Form
 from pydantic import BaseModel
 
+from de.mindscan.fluentgenesis.httpserver.demo_server_utils import predictTheMethodName
+
 # run with uvicorn demo_server:app --reload
 app = FastAPI()
-
-class Prediction(BaseModel):
-    name: str
-    price: float
-    if_offer: bool = None
     
 @app.get("/")
 def read_root():
     return {"message":"Hello World! It works!"}
 
+source = [
+    # Channel#updatePlayer,
+    'if (add) \n\
+        this.playerList.add(player); \n\
+    else \n\
+        this.playerList.remove(player); \n\
+    return this.containsPlayer(player);',
+    
+    # CHennel#containsPlayer
+    'return this.playerList.contains(player);',
+    
+    'this.z = z;',
+    
+    'return TypeID;',
+    
+    'return new StructureBlock(x, y, z, TypeID, SubID);',
+    
+    'return this.z + ":" + this.x;'
+    
+    ] * 3
+
+
 #@app.post("/predictMethodNames/{maxCount}")
 #async def predict_method_name( maxCount:int=5, methodBody: str = Form(...), className: str=Form(...)):
 @app.get("/predictMethodNames/{max_count}")
 async def predict_method_name( max_count:int=5):
-
-    # split into tokens
-    # bpe-encode tokenized code
+    max_count = min( max_count, 10 )
+    # read the source from the request.
+    theSource = random.choice( source )
     
-    max_count = min(max_count,10)
-    
-    # either predict using tensorflow.serving
-    # or predict using loaded model itself
-    
-    # process answer and not more than 10 methodnames allowed and replace them
-    result = ['getName', 'getId', 'getNamedId', 'calculateName', 'name',
-              'createId', 'toString', 'toName', 'convertName', 'convert','neverRETURNThis']
-    
-    # return array of k method names
-    return result[:max_count]
+    return predictTheMethodName( theSource, max_count )[:max_count]
     
