@@ -59,4 +59,8 @@ in this project.
   * https://github.com/perplexingpegasus/ProGAN
   * https://www.tngtech.com/fileadmin/Public/Images/BigTechday/BTD11/Folien/MachineLearningonSourceCode.pdf
   * https://arxiv.org/pdf/1809.07945.pdf
-  * https://arxiv.org/pdf/1711.00740.pdf
+  
+## This is *not* implementing this paper
+But is for whatsoever reason listed as such. Hopefully this github page will be delisted on paperswithcode. 
+ 
+  * arxiv: 1711.00740.pdf
