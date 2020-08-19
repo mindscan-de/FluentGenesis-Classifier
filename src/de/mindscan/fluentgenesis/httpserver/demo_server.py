@@ -26,6 +26,7 @@ SOFTWARE.
 @author: JohnDoe
 '''
 import sys
+from pyparsing import Optional
 sys.path.insert(0,'../../../../../src')
 
 import random
@@ -64,8 +65,6 @@ source = [
     ] * 3
 
 
-#@app.post("/predictMethodNames/{maxCount}")
-#async def predict_method_name( maxCount:int=5, methodBody: str = Form(...), className: str=Form(...)):
 @app.get("/predictMethodNames/{max_count}")
 async def predict_method_name( max_count:int=5):
     max_count = min( max_count, 10 )
@@ -73,4 +72,11 @@ async def predict_method_name( max_count:int=5):
     theSource = random.choice( source )
     
     return predictTheMethodName( theSource, max_count )[:max_count]
+
+@app.post("/predictMethodNamesP/{max_count}")
+async def predict_method_namep( max_count:int=5, body: str = Form(...)):
+    max_count = min( max_count, 10 )
+    # read the source from the request.
+    theSource = body
     
+    return predictTheMethodName( theSource, max_count )[:max_count]
