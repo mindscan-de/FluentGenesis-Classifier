@@ -64,6 +64,17 @@ source = [
     
     ] * 3
 
+@app.on_event("startup")
+async def startup_event():
+    # instantiate the model / instantiate the preoxy server
+    pass
+    
+@app.on_event("shutdown")
+async def shutdown_event():
+    # close the model / close tensorflow / close the proxy server
+    pass
+    
+
 
 @app.get("/predictMethodNames/{max_count}")
 async def predict_method_name( max_count:int=5):
@@ -80,3 +91,4 @@ async def predict_method_namep( max_count:int=5, body: str = Form(...)):
     theSource = body
     
     return predictTheMethodName( theSource, max_count )[:max_count]
+
