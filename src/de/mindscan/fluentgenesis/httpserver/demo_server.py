@@ -73,8 +73,18 @@ async def startup_event():
 async def shutdown_event():
     # close the model / close tensorflow / close the proxy server
     pass
-    
 
+@app.get("/heartbeat")
+async def heartbeat_request():
+    # provide an answer the plugin expects to find out, whether the service is running
+    return {'alive':'true'}
+
+
+## TODO: cache the results and serve the cached results
+## ----------------------------------------------------
+## Maybe do some caching on the serverside, for repeating requests
+## especially if more users are using this service
+##
 
 @app.get("/predictMethodNames/{max_count}")
 async def predict_method_name( max_count:int=5):
