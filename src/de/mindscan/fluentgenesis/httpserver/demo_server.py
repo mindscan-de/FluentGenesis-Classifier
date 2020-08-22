@@ -26,14 +26,13 @@ SOFTWARE.
 @author: JohnDoe
 '''
 import sys
-from pyparsing import Optional
 sys.path.insert(0,'../../../../../src')
 
 import random
-
 from fastapi import FastAPI, Form
-from pydantic import BaseModel
 
+## TODO: I don't like this construction / use / it should be more professional 
+##       atm it works and keeps the other mess out...
 from de.mindscan.fluentgenesis.httpserver.demo_server_utils import predictTheMethodName
 
 # run with uvicorn demo_server:app --reload
@@ -41,7 +40,57 @@ app = FastAPI()
     
 @app.get("/")
 def read_root():
-    return {"message":"Hello World! It works!"}
+    return {"message":"Hello World! It works! But now, go away!"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    # instantiate the model / instantiate the proxy server for tf.serving
+    pass
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    # close the model / close tensorflow / close the proxy server for tf.serving
+    pass
+
+@app.get("/heartbeat")
+async def heartbeat_request():
+    # provide an answer the plugin expects to find out, whether the service is running
+    return {'alive':'true'}
+
+## TODO: Build Cache
+## -----------------
+## The results of the calculations should be cached for a while e.g. LRU - since calculation is quite 'expensive'
+## especially if we transfer to the use of beamsearch leter
+##
+## * he caching should be done on the serer side, as well as on the client side, the client can save the round trip 
+##   time, which is minimal for localhost, next fastetest is 10GE inover local ethernet, but the performance will 
+##   slow down.
+## * caching on the server side is especially useful, if multiple users are using the prediction server;
+##   otherwise client side caching is suffficient
+## * also batch predicion should be made be possible, so that the requesting sstem can provide a batch of things to 
+##   predict, not only one code fragment, this might be useful if the plugin itself becomes proactive, instead of 
+##   only interactive.
+## * batch predictions are probably messy to cache - maybe batches should niot ba cached
+## * maybe results of beamsearches shouldn't be cached?
+## ---------------------------------------------------
+## at this particular moment in time: 
+## * I dont care about caching right now. 
+## * I can work on problems, which need a solution now
+## ---------------------------------------------------
+@app.post("/predictMethodNamesP/{max_count}")
+async def predict_method_namep( max_count:int=5, body: str = Form(...)):
+    max_count = min( max_count, 10 )
+    # read the source from the request.
+    theSource = body
+    
+    return predictTheMethodName( theSource, max_count )[:max_count]
+
+# ----------------------------------------------------------------------------------
+# TODO: The following code is just for demonstration and should be removed later on. 
+# ----------------------------------------------------------------------------------
+
+## @deprecated
 
 source = [
     # Channel#updatePlayer,
@@ -51,7 +100,7 @@ source = [
         this.playerList.remove(player); \n\
     return this.containsPlayer(player);',
     
-    # CHennel#containsPlayer
+    # Channel#containsPlayer
     'return this.playerList.contains(player);',
     
     'this.z = z;',
@@ -64,41 +113,11 @@ source = [
     
     ] * 3
 
-@app.on_event("startup")
-async def startup_event():
-    # instantiate the model / instantiate the preoxy server
-    pass
-    
-@app.on_event("shutdown")
-async def shutdown_event():
-    # close the model / close tensorflow / close the proxy server
-    pass
-
-@app.get("/heartbeat")
-async def heartbeat_request():
-    # provide an answer the plugin expects to find out, whether the service is running
-    return {'alive':'true'}
-
-
-## TODO: cache the results and serve the cached results
-## ----------------------------------------------------
-## Maybe do some caching on the serverside, for repeating requests
-## especially if more users are using this service
-##
-
 @app.get("/predictMethodNames/{max_count}")
 async def predict_method_name( max_count:int=5):
     max_count = min( max_count, 10 )
     # read the source from the request.
     theSource = random.choice( source )
-    
-    return predictTheMethodName( theSource, max_count )[:max_count]
-
-@app.post("/predictMethodNamesP/{max_count}")
-async def predict_method_namep( max_count:int=5, body: str = Form(...)):
-    max_count = min( max_count, 10 )
-    # read the source from the request.
-    theSource = body
     
     return predictTheMethodName( theSource, max_count )[:max_count]
 
