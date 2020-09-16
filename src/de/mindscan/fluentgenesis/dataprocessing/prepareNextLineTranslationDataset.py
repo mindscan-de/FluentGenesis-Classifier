@@ -27,7 +27,6 @@ SOFTWARE.
 import argparse
 import pandas as pd
 
-
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 from de.mindscan.fluentgenesis.dataprocessing.translation_dataset import TranslationDataset
@@ -55,30 +54,45 @@ COL_CLASSNAME = 'class_name'
 COL_METHODNAME = 'method_name'
 
 
-def build_transation_example_for_current_line(row, current_line):
-    # encode row[COL_CLASSNAME] = encoded_classname
-    # concatenate 
-    # row[COL_ENCODED_METHOD_NAME] + row[COL_ENCODED_METHOD_SIGNATURE]
-    #
-     
-    # TODO: array of tokens of the context and the previous lines, before the 'current_line'
+def build_transation_example_for_current_line(row, encoded_class_and_delimiter, current_line):
     from_line = []
+
+    # array of tokens of the context and the previous lines, before the 'current_line'
+    from_line.extend(encoded_class_and_delimiter)
+    from_line.extend(row[COL_ENCODED_METHOD_NAME]) 
+    from_line.extend(row[COL_ENCODED_METHOD_SIGNATURE])
     
-    # array of tokens of the "next"(current_line) line 
+    start_index = max(0, current_line-4)
+    stop_index = max(0, current_line)
+
+
+    # TODO: do that mor pythonic - good enough?
+    # extend the from line by the preceding lines of code.
+    for prev_line_index in range(start_index,stop_index):
+        from_line.extend(row[COL_ENCODED_METHOD_BODY][prev_line_index])
+    
+    # array of tokens of the "next"(current_line) line
     to_line = row[COL_ENCODED_METHOD_BODY][current_line]
     
-    return from_line, to_line 
+    return from_line, to_line
+
+   
 
 
-def process_chunk(df, bpe_encoder, translation_dataset):
+def process_chunk(df, bpe_encoder : SimpleBPEEncoder, translation_dataset):
     print (df.columns)
     for _, row in  df.iterrows():
         # TODO: use the bpe encoder to encode the class name and the delimiters / 
         #       because the classname was not encoded in the first place...
+        encoded_class_and_delimiter = bpe_encoder.encode([row[COL_CLASSNAME] , '.'])
         
         num_lines = len(row[COL_ENCODED_METHOD_BODY])
-        for current_number in range(1,num_lines):
-            translate_from, translate_to = build_transation_example_for_current_line(row, current_number)
+        
+        
+        for current_number in range(0,num_lines):
+            translate_from, translate_to = build_transation_example_for_current_line(
+                row, encoded_class_and_delimiter, current_number)
+            
             # add the current line as a translation to our dataset
             translation_dataset.addTranslation( translate_from, translate_to )
     pass
