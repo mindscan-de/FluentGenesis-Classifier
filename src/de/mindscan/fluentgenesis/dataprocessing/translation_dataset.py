@@ -27,6 +27,8 @@ Created on 16.09.2020
 '''
 
 import os
+import json
+from ipywidgets.widgets.trait_types import bytes_from_json
 
 class TranslationDataset(object):
     '''
@@ -63,7 +65,19 @@ class TranslationDataset(object):
         
         
     def addTranslation(self, translation_from, translation_to):
+        try:
+            from_json = json.dumps(translation_from)
+            to_json = json.dumps(translation_to)
+            
+            self.__filehandle_from.write( from_json)
+            self.__filehandle_from.write( "\n" )
+            
+            self.__filehandle_to.write( to_json)
+            self.__filehandle_to.write( "\n" )
+
+        except:
+            raise Exception("the jsonfile might me corrupted...")
+            
         pass
-    
     
     
