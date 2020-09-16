@@ -28,7 +28,6 @@ Created on 16.09.2020
 
 import os
 import json
-from ipywidgets.widgets.trait_types import bytes_from_json
 
 class TranslationDataset(object):
     '''
