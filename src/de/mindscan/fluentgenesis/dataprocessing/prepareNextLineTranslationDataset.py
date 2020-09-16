@@ -53,6 +53,8 @@ COL_FILENAME = 'file_name'
 COL_CLASSNAME = 'class_name'
 COL_METHODNAME = 'method_name'
 
+MAX_CONTEXT_LINES = 3
+
 
 def build_transation_example_for_current_line(row, encoded_class_and_delimiter, current_line):
     from_line = []
@@ -62,7 +64,7 @@ def build_transation_example_for_current_line(row, encoded_class_and_delimiter, 
     from_line.extend(row[COL_ENCODED_METHOD_NAME]) 
     from_line.extend(row[COL_ENCODED_METHOD_SIGNATURE])
     
-    start_index = max(0, current_line-4)
+    start_index = max(0, current_line-MAX_CONTEXT_LINES)
     stop_index = max(0, current_line)
 
 
@@ -82,8 +84,6 @@ def build_transation_example_for_current_line(row, encoded_class_and_delimiter, 
 def process_chunk(df, bpe_encoder : SimpleBPEEncoder, translation_dataset):
     print (df.columns)
     for _, row in  df.iterrows():
-        # TODO: use the bpe encoder to encode the class name and the delimiters / 
-        #       because the classname was not encoded in the first place...
         encoded_class_and_delimiter = bpe_encoder.encode([row[COL_CLASSNAME] , '.'])
         
         num_lines = len(row[COL_ENCODED_METHOD_BODY])
