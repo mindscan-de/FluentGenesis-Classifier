@@ -30,6 +30,7 @@ import pandas as pd
 
 from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
+from de.mindscan.fluentgenesis.dataprocessing.translation_dataset import TranslationDataset
 
 
 # the work to do: read each line from the method dataset and output multiple formatted lines, 
@@ -58,33 +59,39 @@ def build_transation_example_for_current_line(row, current_line):
     # encode row[COL_CLASSNAME] = encoded_classname
     # concatenate 
     # row[COL_ENCODED_METHOD_NAME] + row[COL_ENCODED_METHOD_SIGNATURE]
-    # 
-    
+    #
+     
+    # TODO: array of tokens of the context and the previous lines, before the 'current_line'
     from_line = []
+    
+    # array of tokens of the "next"(current_line) line 
     to_line = row[COL_ENCODED_METHOD_BODY][current_line]
     
     return from_line, to_line 
 
 
-def process_chunk(df, bpe_encoder):
+def process_chunk(df, bpe_encoder, translation_dataset):
     print (df.columns)
     for _, row in  df.iterrows():
+        # TODO: use the bpe encoder to encode the class name and the delimiters / 
+        #       because the classname was not encoded in the first place...
+        
         num_lines = len(row[COL_ENCODED_METHOD_BODY])
         for current_number in range(1,num_lines):
             translate_from, translate_to = build_transation_example_for_current_line(row, current_number)
-            # add_translation( translate_from, translate_to)
-    
+            # add the current line as a translation to our dataset
+            translation_dataset.addTranslation( translate_from, translate_to )
+    pass
 
 
-
-def process_all_lines_in_next_line_dataset(input_dataset_path, bpe_encoder):
+def process_all_lines_in_next_line_dataset(input_dataset_path, bpe_encoder, translation_dataset):
     # open jsonl file
     with open(input_dataset_path,'r') as jsonl_file:
         # read chunks with chunksize
         reader = pd.read_json(jsonl_file, lines=True, chunksize=1000)
         for chunk_df in reader:
             # process the dataframe
-            process_chunk(chunk_df, bpe_encoder)
+            process_chunk(chunk_df, bpe_encoder, translation_dataset)
 
 
 def doWork(bpe_model_name, bpe_directory, input_dataset_path):
@@ -97,11 +104,13 @@ def doWork(bpe_model_name, bpe_directory, input_dataset_path):
     # for encoding the classnames.     
     bpe_encoder = SimpleBPEEncoder(model_vocabulary, model_bpe_data)
     
-    
-    # TODO: init some translation dataset
-    # TODO: translationdataset uebergeben
+    # TODO: extract these constants to the args/argparser.
+    translation_dataset = TranslationDataset(dataset_name = 'NextLineTranslationDataset.jsonl')
+    translation_dataset.prepareNewDataset(dataset_directory = 'D:\\Downloads\\Big-Code-excerpt\\')
 
-    process_all_lines_in_next_line_dataset(input_dataset_path, bpe_encoder)
+    process_all_lines_in_next_line_dataset(input_dataset_path, bpe_encoder, translation_dataset)
+    
+    translation_dataset.finish()
     
     pass
 
