@@ -31,18 +31,7 @@ from de.mindscan.fluentgenesis.bpe.bpe_model import BPEModel
 from de.mindscan.fluentgenesis.bpe.bpe_encoder_decoder import SimpleBPEEncoder
 from de.mindscan.fluentgenesis.dataprocessing.translation_dataset import TranslationDataset
 
-
-# the work to do: read each line from the method dataset and output multiple formatted lines, 
-# which do have some constraints and formattings.
-
-# max 8 lines of code?
-# output format are files which have line by line correspondence
-# from 
-# array of - [classname] <delim> [methodname] [method_signature] <delim> [code]
-# to
-# next ..code..
-# each line in each "translation" is json array []
-
+# column names from the next line dataset
 COL_ENCODED_METHOD_SIGNATURE = 'encoded_method_sign'
 COL_ENCODED_METHOD_NAME = 'encoded_method_name'
 COL_ENCODED_METHOD_BODY = 'encoded_method_body'
@@ -53,6 +42,7 @@ COL_FILENAME = 'file_name'
 COL_CLASSNAME = 'class_name'
 COL_METHODNAME = 'method_name'
 
+# maximum of 3 lines of code
 MAX_CONTEXT_LINES = 3
 
 
