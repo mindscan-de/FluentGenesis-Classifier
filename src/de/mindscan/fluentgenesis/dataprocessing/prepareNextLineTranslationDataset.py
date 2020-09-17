@@ -81,24 +81,28 @@ def build_transation_example_for_current_line(row, encoded_class_and_delimiter, 
    
 
 
-def process_chunk(df, bpe_encoder : SimpleBPEEncoder, translation_dataset):
+def process_chunk(df, bpe_encoder : SimpleBPEEncoder, translation_dataset : TranslationDataset):
+    latest_class_name = '--'
+    latest_encoded_class_name = '--';
     print (df.columns)
     for _, row in  df.iterrows():
-        encoded_class_and_delimiter = bpe_encoder.encode([row[COL_CLASSNAME] , '.'])
-        
+        # simple caching mechanism for 
+        if not latest_class_name == row[COL_CLASSNAME]:
+            latest_encoded_class_name = bpe_encoder.encode([row[COL_CLASSNAME] , '.'])
+            latest_class_name = row[COL_CLASSNAME]
+            
         num_lines = len(row[COL_ENCODED_METHOD_BODY])
-        
         
         for current_number in range(0,num_lines):
             translate_from, translate_to = build_transation_example_for_current_line(
-                row, encoded_class_and_delimiter, current_number)
+                row, latest_encoded_class_name, current_number)
             
             # add the current line as a translation to our dataset
             translation_dataset.addTranslation( translate_from, translate_to )
     pass
 
 
-def process_all_lines_in_next_line_dataset(input_dataset_path, bpe_encoder, translation_dataset):
+def process_all_lines_in_next_line_dataset(input_dataset_path, bpe_encoder : SimpleBPEEncoder, translation_dataset: TranslationDataset):
     # open jsonl file
     with open(input_dataset_path,'r') as jsonl_file:
         # read chunks with chunksize
