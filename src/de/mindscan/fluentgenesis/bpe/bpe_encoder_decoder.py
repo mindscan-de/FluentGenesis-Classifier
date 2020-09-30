@@ -225,7 +225,8 @@ class SimpleBPEEncoder(object):
         decoded_tokens = []
         
         for token in tokens:
-            decoded_tokens.append(self.__decoder_table[token])
+            if token in self.__decoder_table:
+                decoded_tokens.append(self.__decoder_table[token])
         
         return decoded_tokens
 
