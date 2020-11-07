@@ -1,0 +1,1 @@
+uvicorn labeling_server:app --port 7000 --reload
