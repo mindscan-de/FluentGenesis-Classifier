@@ -42,5 +42,6 @@ app = FastAPI()
 @app.post("/SilentFeedBackend/rest/predictMethodnames")
 async def predict_method_names_from_body(maxPredictions: int = 16, methodBody:str = Form(...)):
     maxPredictions = min( maxPredictions, 32)
-    return { 'methodNamesItems':predictMultipleMethodNames( methodBody, 100 ) }
-#[:maxPredictions]
+    predictedNames = predictMultipleMethodNames( methodBody, maxPredictions * 2 )[:maxPredictions]
+    return {'numberOfMethodNames':len(predictedNames),
+            'methodNamesItems': predictedNames }
