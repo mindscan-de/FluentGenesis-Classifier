@@ -43,19 +43,19 @@ DATAMODEL_DIR = '../../../../../data/cheaplithium/dm/'
 def read_root():
     return {"message":"Hello World! It works! But now, go away!"}
 
-@app.get("/getDecisionModel/{id}")
-async def provide_decision_model( id:str='0518f24f-41a0-4f13-b5f6-94a015b5b04c'):
+@app.get("/getDecisionModel/{unique_id}")
+async def provide_decision_model( unique_id:str='0518f24f-41a0-4f13-b5f6-94a015b5b04c'):
     dmdict ={}
-    read_uuid = uuid.UUID('{' + id + '}')
+    read_uuid = uuid.UUID('{' + unique_id + '}')
     
-    if ( str(read_uuid) == id):
-        jsonfilepath = DATAMODEL_DIR + id + '.json'
+    if ( str(read_uuid) == unique_id):
+        jsonfilepath = DATAMODEL_DIR + str(read_uuid) + '.json'
         if os.path.isfile(jsonfilepath):
             with open(jsonfilepath) as json_source_file:
                 dmdict = json.load(json_source_file)
         else:
-            abs = os.path.abspath(jsonfilepath)
-            dmdict=  {"message":"no_such_file "+str(abs)}
+            abs_name = os.path.abspath(jsonfilepath)
+            dmdict=  {"message":"no_such_file "+str(abs_name)}
     else:
         dmdict=  {"message":"uid doesn't match."}
     
