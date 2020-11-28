@@ -38,10 +38,43 @@ app = FastAPI()
 
 DATAMODEL_DIR = '../../../../../data/cheaplithium/dm/'
 
+# -----------------------------------------
+# Data Model property names
+# -----------------------------------------
 
+# Internal Model of the Decision Model
+DM_NODES = 'nodes'
+DM_NAME = 'name'
+DM_UUID = 'uuid'
+DM_DISPLAYNAME = 'displayname'
+DM_DESCRIPTION = 'description'
+DM_STARTNODE = 'startnode'
+DM_VERSION = 'version'
 
+# Internal Model of the Decision Node
+DN_UUID = 'uuid'
+DN_NAME = 'name'
+DN_TYPE = 'type'
+DN_TYPE_END = 'end'
+DN_TYPE_START = 'start'
+DN_TYPE_HIT = 'hit'
+DN_TYPE_MIT = 'mit'
+DN_KBARTICLE = 'kbarticle'
+DN_NEXTACTIONS = 'nextactions'
+
+# Internal Model of the Decision Node Transition
+DNT_NAME = 'name'
+DNT_NEXT = 'next'
+DNT_TEMPLATE = 'template'
+
+# -----------------------------------------
 # DecisionModel "Database"
-# persist only as long as the server is runing, for development, we don't need database support 
+# -----------------------------------------
+# persist only as long as the server is 
+# runing, for development, we don't need 
+# database support yet. Maybe never?
+# -----------------------------------------
+ 
 decisionModelDatabase = {}
 
 # -----------------------------------------
@@ -50,9 +83,46 @@ decisionModelDatabase = {}
 def create_successful_uuid_result(uuid:str):
     return {"uuid":uuid, "isSuccess":True, "isError":False}
 
-# --------------------------------------
+def create_decision_node_transition_internal( name, nextnodeuuid, template):
+    return { 
+        DNT_NAME: name, 
+        DNT_NEXT: nextnodeuuid, 
+        DNT_TEMPLATE: template }
 
+def create_decision_node_internal(dnname, dntype, kbarticle, dnfollownodes):
+    dnUuid = uid.uuid4()
+    decisionNode = {
+        DN_UUID: 'DN_' + str(dnUuid), 
+        DN_NAME: dnname , 
+        DN_TYPE: dntype , 
+        DN_KBARTICLE: kbarticle ,
+        DN_NEXTACTIONS: []}
+    
+    if len(dnfollownodes) >= 1:
+        if(len(dnfollownodes)) == 1:
+            tn = create_decision_node_transition_internal('default', dnfollownodes[0][DN_UUID], '')
+            decisionNode[DN_NEXTACTIONS].append(tn)
+        else:
+            pass
+    
+    return decisionNode, str(dnUuid)
 
+def create_decision_model_internal(name:str, displayname:str, description:str, version:str):
+    dmUuid = uid.uuid4()
+    
+    endnode, _ = create_decision_node_internal('900.endstate',DN_TYPE_END,'',[])  
+    startnode, _ = create_decision_node_internal('000.startstate',DN_TYPE_START,'',[endnode])
+
+    decisionModel = {
+        DM_UUID: 'DM_' + str(dmUuid), 
+        DM_NAME: name, 
+        DM_DISPLAYNAME: displayname, 
+        DM_VERSION: version, 
+        DM_DESCRIPTION: description, 
+        DM_STARTNODE: startnode[DN_UUID],
+        DM_NODES: [startnode, endnode]}
+    
+    return  decisionModel, str(dmUuid)
 
 # --------------------------------------
 # API-Webserver "code" - 
@@ -64,6 +134,7 @@ def read_root():
 
 @app.get("/CheapLithium/rest/getDecisionModel/{uuid}")
 async def provide_decision_model( uuid:str='0518f24f-41a0-4f13-b5f6-94a015b5b04c'):
+    global decisionModelDatabase
     try:
         read_uuid = uid.UUID('{' + uuid + '}')
     except:
@@ -92,9 +163,11 @@ async def provide_decision_model( uuid:str='0518f24f-41a0-4f13-b5f6-94a015b5b04c
 @app.post("/CheapLithium/rest/createDecisionModel")
 async def create_decision_model( name:str = Form(...), displayname:str=Form(...), 
     description:str=Form(...), version:str = Form(...)):
+    global decisionModelDatabase
     
-    uuid = uid.uuid4()
-    # create a model with a start and an end node, using generated model uuid
+    # Create and Cache the model until restart
+    model, uuid  = create_decision_model_internal(name, displayname, description, version)
+    decisionModelDatabase[uuid] =  model
     
     return create_successful_uuid_result(uuid)
 
