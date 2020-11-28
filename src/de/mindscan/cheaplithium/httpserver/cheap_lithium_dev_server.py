@@ -144,6 +144,25 @@ def insert_decision_node_into_decision_model(dn, dmuuid:str):
     
     return decisionModel, dmuuid
 
+
+def persist_decision_model_internal(dmuuid):
+    global decisionModelDatabase
+    try:
+        read_uuid = uid.UUID('{' + dmuuid + '}')
+    except:
+        return {"messsage":"invalid uuid"}
+
+    if ( str(read_uuid) == dmuuid):
+        jsonfilepath = DATAMODEL_DIR + str(read_uuid) + '.json'
+        
+        if dmuuid in decisionModelDatabase:
+            with open(jsonfilepath,"w") as json_target_file:
+                json.dump(decisionModelDatabase[dmuuid], json_target_file);
+        
+        pass
+        
+    return dmuuid
+
 # --------------------------------------
 # API-Webserver "code" - 
 # --------------------------------------
@@ -203,6 +222,15 @@ async def create_decision_node (name:str = Form(...), exectype:str = Form(...),
     
     # return back to model
     return create_successful_uuid_result(dmuuid)
+
+@app.post("/CheapLithium/rest/persistDecisionModel")
+async def persist_decision_model ( uuid: str = Form(...)):
+    global decisionModelDatabase
+    
+    uuid = strip_uuid(uuid)
+    persist_decision_model_internal(uuid)
+    
+    return create_successful_uuid_result(uuid)
 
 @app.post("/CheapLithium/rest/updateDecisionModel")
 async def update_decision_model(uuid: str = Form(...), name:str = Form(...),  displayname:str=Form(...), 
