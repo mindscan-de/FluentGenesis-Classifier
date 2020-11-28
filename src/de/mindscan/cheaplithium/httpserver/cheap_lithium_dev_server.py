@@ -83,6 +83,12 @@ decisionModelDatabase = {}
 def create_successful_uuid_result(uuid:str):
     return {"uuid":uuid, "isSuccess":True, "isError":False}
 
+def strip_uuid(uuid):
+    if(uuid.startswith("DM_") or uuid.startswith("DN_")) :
+        return uuid[3:]
+    return uuid
+
+
 def create_decision_node_transition_internal( name, nextnodeuuid, template):
     return { 
         DNT_NAME: name, 
@@ -123,6 +129,20 @@ def create_decision_model_internal(name:str, displayname:str, description:str, v
         DM_NODES: [startnode, endnode]}
     
     return  decisionModel, str(dmUuid)
+
+def insert_decision_node_into_decision_model(dn, dmuuid:str):
+    global decisionModelDatabase
+    
+    decisionModel = decisionModelDatabase[dmuuid]
+    nodes = decisionModel[DM_NODES]
+    nodes.append(dn)
+    #  sort decision nodes by name (good enough) 
+    sortednodes = sorted(nodes, key=lambda k: k['name'])
+    decisionModel[DM_NODES] = sortednodes
+     
+    decisionModelDatabase[dmuuid] = decisionModel
+    
+    return decisionModel, dmuuid
 
 # --------------------------------------
 # API-Webserver "code" - 
@@ -171,6 +191,18 @@ async def create_decision_model( name:str = Form(...), displayname:str=Form(...)
     
     return create_successful_uuid_result(uuid)
 
+@app.post("/CheapLithium/rest/createDecisionNode")
+async def create_decision_node (name:str = Form(...), exectype:str = Form(...), 
+                                kbarticle:str = Form(""), dmuuid:str=Form(...)):
+    global decisionModelDatabase
+    
+    dmuuid = strip_uuid(dmuuid)
+    
+    dnode, _ = create_decision_node_internal(name, exectype, kbarticle, [])
+    insert_decision_node_into_decision_model(dnode, dmuuid)
+    
+    # return back to model
+    return create_successful_uuid_result(dmuuid)
 
 @app.post("/CheapLithium/rest/updateDecisionModel")
 async def update_decision_model(uuid: str = Form(...), name:str = Form(...),  displayname:str=Form(...), 
