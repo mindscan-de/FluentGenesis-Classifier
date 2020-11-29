@@ -234,7 +234,8 @@ async def get_decision_model_list():
     # 2020-11-29:
     # this is just a crude hack, but there is no reason to implement an index of the models right now.
     # ... only want to bootstrap something else right now. no need to implement a solution at the moment 
-    return  [
+    return  {
+        "items": [
             {
                 "uuid": "0518f24f-41a0-4f13-b5f6-94a015b5b04c",
                 "name": "MyGlasswallDecisionModel",
@@ -256,7 +257,7 @@ async def get_decision_model_list():
                  "version": "2.0", 
                  "description": "But this will make you even more smarter."
             } 
-            ]
+            ]}
             
 
 
