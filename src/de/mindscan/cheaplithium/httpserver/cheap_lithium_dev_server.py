@@ -260,6 +260,25 @@ async def get_decision_model_list():
             ]}
             
 
+@app.get("/CheapLithium/rest/getDecisionThreadList")
+async def get_decision_thread_list():
+    return {
+        "threads" : [
+                {
+                    "uuid" : "UUID",
+                    "environment" : {
+                            "uuid":"UUID",
+                            "log":[],
+                            "nodehistory" : []
+                        },
+                    "currentstate" : "STATE/WAIT/RUNNING/TERMINATED",
+                    "currentModel" : "0518f24f-41a0-4f13-b5f6-94a015b5b04c",
+                    "currentNode" : "DN_559e9bf8-242e-4887-86fa-f3427647f1cb",
+                    "ticketreference" : ["NSSXMI-26940"],
+                    "owner": ""
+                }
+            ]
+        }
 
 @app.post("/CheapLithium/rest/updateDecisionModel")
 async def update_decision_model(uuid: str = Form(...), name:str = Form(...),  displayname:str=Form(...), 
