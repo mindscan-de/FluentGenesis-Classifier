@@ -37,6 +37,7 @@ from fastapi import FastAPI, Form
 app = FastAPI()
 
 DATAMODEL_DIR = '../../../../../data/cheaplithium/dm/'
+DATATHREAD_DIR = '../../../../../data/cheaplithium/threads/'
 
 # -----------------------------------------
 # Data Model property names
@@ -76,6 +77,7 @@ DNT_TEMPLATE = 'template'
 # -----------------------------------------
  
 decisionModelDatabase = {}
+decisionThreadDatabase = {}
 
 # -----------------------------------------
 # Later extract the decision modelling code
@@ -260,25 +262,6 @@ async def get_decision_model_list():
             ]}
             
 
-@app.get("/CheapLithium/rest/getDecisionThreadList")
-async def get_decision_thread_list():
-    return {
-        "threads" : [
-                {
-                    "uuid" : "UUID",
-                    "environment" : {
-                            "uuid":"UUID",
-                            "log":[],
-                            "nodehistory" : []
-                        },
-                    "currentstate" : "STATE/WAIT/RUNNING/TERMINATED",
-                    "currentModel" : "0518f24f-41a0-4f13-b5f6-94a015b5b04c",
-                    "currentNode" : "DN_559e9bf8-242e-4887-86fa-f3427647f1cb",
-                    "ticketreference" : ["NSSXMI-26940"],
-                    "owner": ""
-                }
-            ]
-        }
 
 @app.post("/CheapLithium/rest/updateDecisionModel")
 async def update_decision_model(uuid: str = Form(...), name:str = Form(...),  displayname:str=Form(...), 
@@ -293,3 +276,57 @@ async def clone_decision_model(uuid: str = Form(...)):
     # clone that model in the dictionary... - no persistence required 
     
     return create_successful_uuid_result(uuid)
+
+
+##
+##
+## Thread-"database"
+##
+##
+
+@app.get("/CheapLithium/rest/getDecisionThread/{uuid}")
+async def provice_decision_thread(uuid: str='b5ef3ee2-e059-458f-b8a4-77ce7301fef0'):
+    global decisionThreadDatabase
+    try:
+        read_uuid = uid.UUID('{' + uuid + '}')
+    except:
+        if uuid in decisionThreadDatabase:
+            return decisionThreadDatabase[uuid]
+        else:
+            jsonfilepath = DATATHREAD_DIR + str(read_uuid) + '.json'
+            if os.path.isfile(jsonfilepath):
+                with open(jsonfilepath) as json_source_file:
+                    tmpDecisionThread = json.load(json_source_file)
+                    decisionThreadDatabase[uuid] = tmpDecisionThread
+                    return tmpDecisionThread
+            else:
+                return {"message":"no_such_persisted_thread"}
+        
+        return {"message":"invalud uuid"}
+    
+    if( str(read_uuid) == uuid):
+        pass
+    else:
+        return {"message":"uuid doesn't match."}
+     
+    return {}
+
+@app.get("/CheapLithium/rest/getDecisionThreadList")
+async def get_decision_thread_list():
+    return {
+        "threads" : [
+                {
+                    "uuid" : "b5ef3ee2-e059-458f-b8a4-77ce7301fef0",
+                    "environment" : {
+                            "uuid":"2a33075e-4677-4f98-b1fb-c87dd6437263",
+                            "log":[],
+                            "nodehistory" : []
+                        },
+                    "currentstate" : "STATE/WAIT/RUNNING/TERMINATED",
+                    "currentModel" : "0518f24f-41a0-4f13-b5f6-94a015b5b04c",
+                    "currentNode" : "DN_559e9bf8-242e-4887-86fa-f3427647f1cb",
+                    "ticketreference" : ["NSSXMI-26940"],
+                    "owner": ""
+                }
+            ]
+        }
