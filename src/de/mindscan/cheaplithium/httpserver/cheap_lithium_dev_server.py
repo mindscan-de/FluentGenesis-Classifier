@@ -323,8 +323,8 @@ async def get_decision_thread_list():
                             "nodehistory" : []
                         },
                     "currentstate" : "STATE/WAIT/RUNNING/TERMINATED",
-                    "currentModel" : "0518f24f-41a0-4f13-b5f6-94a015b5b04c",
-                    "currentNode" : "DN_559e9bf8-242e-4887-86fa-f3427647f1cb",
+                    "currentmodel" : "0518f24f-41a0-4f13-b5f6-94a015b5b04c",
+                    "currentnode" : "DN_559e9bf8-242e-4887-86fa-f3427647f1cb",
                     "ticketreference" : ["NSSXMI-26940"],
                     "owner": ""
                 }
