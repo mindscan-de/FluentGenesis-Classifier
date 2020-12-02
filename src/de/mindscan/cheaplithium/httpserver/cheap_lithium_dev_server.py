@@ -285,11 +285,14 @@ async def clone_decision_model(uuid: str = Form(...)):
 ##
 
 @app.get("/CheapLithium/rest/getDecisionThread/{uuid}")
-async def provice_decision_thread(uuid: str='b5ef3ee2-e059-458f-b8a4-77ce7301fef0'):
+async def provide_decision_thread(uuid: str='b5ef3ee2-e059-458f-b8a4-77ce7301fef0'):
     global decisionThreadDatabase
     try:
         read_uuid = uid.UUID('{' + uuid + '}')
     except:
+        return {"message":"invalid uuid"}
+        
+    if( str(read_uuid) == uuid):
         if uuid in decisionThreadDatabase:
             return decisionThreadDatabase[uuid]
         else:
@@ -301,11 +304,6 @@ async def provice_decision_thread(uuid: str='b5ef3ee2-e059-458f-b8a4-77ce7301fef
                     return tmpDecisionThread
             else:
                 return {"message":"no_such_persisted_thread"}
-        
-        return {"message":"invalud uuid"}
-    
-    if( str(read_uuid) == uuid):
-        pass
     else:
         return {"message":"uuid doesn't match."}
      
@@ -325,7 +323,9 @@ async def get_decision_thread_list():
                     "currentstate" : "STATE/WAIT/RUNNING/TERMINATED",
                     "currentmodel" : "0518f24f-41a0-4f13-b5f6-94a015b5b04c",
                     "currentnode" : "DN_559e9bf8-242e-4887-86fa-f3427647f1cb",
-                    "ticketreference" : ["NSSXMI-26940"],
+                    "ticketreference" : [
+                        "NSSXMI-26940","NSSXMI-17262"
+                        ],
                     "owner": ""
                 }
             ]
