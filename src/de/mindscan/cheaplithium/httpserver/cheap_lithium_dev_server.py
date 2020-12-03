@@ -258,6 +258,13 @@ async def get_decision_model_list():
                  "displayname": "This is only my decond best mdel", 
                  "version": "2.0", 
                  "description": "But this will make you even more smarter."
+            },
+            {
+                "uuid": "db60a6a3-97c6-4f51-8513-b4751c650eb4", 
+                "name": "ChoosingTheRightEstimator", 
+                "displayname": "Choosing the right Estimator", 
+                "version": "1.0", 
+                "description": "Often the hardest part of solvind a machine learning problem can be finding the right estimator for the job.\r\nDifferent estimators are better suited for different types of data and differen problems.\r\nThe decision tree is designed to give usera a bit of a rough guide on how to approach problems with regard to which estimators to try on your data."
             } 
             ]}
             
