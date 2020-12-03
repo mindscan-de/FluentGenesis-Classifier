@@ -159,7 +159,7 @@ def persist_decision_model_internal(dmuuid):
         
         if dmuuid in decisionModelDatabase:
             with open(jsonfilepath,"w") as json_target_file:
-                json.dump(decisionModelDatabase[dmuuid], json_target_file,indent=4);
+                json.dump(decisionModelDatabase[dmuuid], json_target_file,indent=2);
         
         pass
         
