@@ -289,17 +289,11 @@ async def insert_decision_node_transition(uuid: str = Form(...), dnuuid:str=Form
     
     uuid = strip_uuid(uuid)
     
-    print("{}.{}".format(uuid,dnuuid))
-    print(transitionObject)
-    
     if uuid in decisionModelDatabase:
         decisionModel = decisionModelDatabase[uuid]
         for decisionNode in decisionModel[DM_NODES]:
             if decisionNode[DN_UUID] == dnuuid:
-                print("extending list")
                 decisionNode[DN_NEXTACTIONS].append(transitionObject)
-                
-        print (decisionModelDatabase[uuid])
     else:
         print({"message", "uuid_not in database"})
         return {"message", "uuid_not in database"}
@@ -308,12 +302,21 @@ async def insert_decision_node_transition(uuid: str = Form(...), dnuuid:str=Form
     
     return create_successful_uuid_result(uuid)
 
-@app.post("/CheapLithium/rest/insertDecisionNodeTransition")
+@app.post("/CheapLithium/rest/updateDecisionNodeTransition")
 async def updateDecisionNodeTransition(uuid: str = Form(...), dnuuid:str=Form(...), index:int=Form(...),transition:str=Form(...)):
     global decisionModelDatabase 
     transitionObject = json.loads(transition)
+
+    uuid = strip_uuid(uuid)
     
-    
+    if uuid in decisionModelDatabase:
+        decisionModel = decisionModelDatabase[uuid]
+        for decisionNode in decisionModel[DM_NODES]:
+            if decisionNode[DN_UUID] == dnuuid:
+                decisionNode[DN_NEXTACTIONS][index]=transitionObject
+    else:
+        print({"message", "uuid_not in database"})
+        return {"message", "uuid_not in database"}
     
     return create_successful_uuid_result(uuid)            
 
