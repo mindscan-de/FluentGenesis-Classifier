@@ -267,7 +267,56 @@ async def get_decision_model_list():
                 "description": "Often the hardest part of solvind a machine learning problem can be finding the right estimator for the job.\r\nDifferent estimators are better suited for different types of data and differen problems.\r\nThe decision tree is designed to give usera a bit of a rough guide on how to approach problems with regard to which estimators to try on your data."
             } 
             ]}
-            
+
+#    private _insertDecisionNodeTransitionLocation   = '/CheapLithium/rest/insertDecisionNodeTransition';
+#    private _updateDecisionNodeTransitionLocation   = '/CheapLithium/rest/updateDecisionNodeTransition';
+
+#        formdata.append("uuid", uuid);
+#        formdata.append("dnuuid", dnuuid);
+#        formdata.append("transition", JSON.stringify(transition));
+
+#        formdata.append("uuid", uuid);
+#        formdata.append("dnuuid", dnuuid);
+#        formdata.append("index", tindex.toString() );
+#        formdata.append("transition", JSON.stringify(updtransition));
+
+
+
+@app.post("/CheapLithium/rest/insertDecisionNodeTransition")
+async def insert_decision_node_transition(uuid: str = Form(...), dnuuid:str=Form(...), transition:str=Form(...)):
+    global decisionModelDatabase
+    transitionObject = json.loads(transition)
+    
+    uuid = strip_uuid(uuid)
+    
+    print("{}.{}".format(uuid,dnuuid))
+    print(transitionObject)
+    
+    if uuid in decisionModelDatabase:
+        decisionModel = decisionModelDatabase[uuid]
+        for decisionNode in decisionModel[DM_NODES]:
+            if decisionNode[DN_UUID] == dnuuid:
+                print("extending list")
+                decisionNode[DN_NEXTACTIONS].append(transitionObject)
+                
+        print (decisionModelDatabase[uuid])
+    else:
+        print({"message", "uuid_not in database"})
+        return {"message", "uuid_not in database"}
+    
+    
+    
+    return create_successful_uuid_result(uuid)
+
+@app.post("/CheapLithium/rest/insertDecisionNodeTransition")
+async def updateDecisionNodeTransition(uuid: str = Form(...), dnuuid:str=Form(...), index:int=Form(...),transition:str=Form(...)):
+    global decisionModelDatabase 
+    transitionObject = json.loads(transition)
+    
+    
+    
+    return create_successful_uuid_result(uuid)            
+
 
 
 @app.post("/CheapLithium/rest/updateDecisionModel")
