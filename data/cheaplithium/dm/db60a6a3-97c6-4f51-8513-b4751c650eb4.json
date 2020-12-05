@@ -14,7 +14,7 @@
       "nextactions": [
         {
           "name": "default",
-          "next": "DN_614b16a9-68f2-42cb-8a9b-14537a764d5b",
+          "next": "DN_cefacc87-4d5f-48c9-9d85-9e64f829b570",
           "template": ""
         }
       ]
@@ -24,7 +24,20 @@
       "name": "001.decide_small_sample_size",
       "type": "hit",
       "kbarticle": "",
-      "nextactions": []
+      "nextactions": [
+        {
+          "name": "no",
+          "next": "DN_c18f5206-d5aa-4c83-91ad-d41fa8e3d897",
+          "template": "",
+          "transitif": ""
+        },
+        {
+          "name": "yes",
+          "next": "DN_d2d5eacc-3dba-456c-b8dc-62b58afd0e68",
+          "template": "",
+          "transitif": ""
+        }
+      ]
     },
     {
       "uuid": "DN_d2d5eacc-3dba-456c-b8dc-62b58afd0e68",
@@ -38,7 +51,14 @@
       "name": "801.get_more_data",
       "type": "mit",
       "kbarticle": "",
-      "nextactions": []
+      "nextactions": [
+        {
+          "name": "always",
+          "next": "DN_614b16a9-68f2-42cb-8a9b-14537a764d5b",
+          "template": "",
+          "transitif": ""
+        }
+      ]
     },
     {
       "uuid": "DN_614b16a9-68f2-42cb-8a9b-14537a764d5b",
