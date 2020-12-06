@@ -1,1 +1,0 @@
-uvicorn cheap_lithium_dev_server:app --reload
